@@ -15,7 +15,9 @@ class Item(models.Model):
     total_value = models.DecimalField(
         "total_value", max_digits=10, decimal_places=2, default=0
     )
-    rubro_id = models.ForeignKey(Rubro, on_delete=models.SET_NULL, related_name="items")
+    rubro_id = models.ForeignKey(
+        Rubro, on_delete=models.SET_NULL, null=True, blank=True
+    )
     created_at = models.DateTimeField("created_at", auto_now_add=True)
     updated_at = models.DateTimeField("updated_at", auto_now=True)
     deleted_at = models.DateTimeField("deleted_at", blank=True, null=True)
