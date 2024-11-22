@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "core.detailContracts",
     "core.contracts",
     "core.movements",
+    "core.cdps",
 ]
 
 MIDDLEWARE = [
