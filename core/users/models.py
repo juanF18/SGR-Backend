@@ -1,6 +1,7 @@
 from django.db import models
 from core.roles.models import Role
 from core.entities.models import Entity
+<<<<<<< HEAD
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 
@@ -25,6 +26,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         "email", max_length=100, unique=True, null=True, blank=True
     )
+=======
+
+
+# Create your models here.
+class User(models.Model):
+    name = models.CharField("name", max_length=100, null=True, blank=True)
+    last_name = models.CharField("last_name", max_length=100, null=True, blank=True)
+>>>>>>> develop
     identification = models.CharField(
         "identification", max_length=100, null=True, blank=True
     )
@@ -36,9 +45,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+<<<<<<< HEAD
     objects = CustomManager()
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+=======
+>>>>>>> develop
 
     class Meta:
         db_table = "users"

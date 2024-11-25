@@ -26,16 +26,45 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", default=False)
+DEBUG = os.environ.get("DEBUG", default=False)
 
+ALLOWED_HOSTS = ["*"]
 ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    ## Third party apps
+    "rest_framework",
+    "corsheaders",
+    ## Local apps
+    "core.roles",
+    "core.entities",
+    "core.users",
+    "core.comments",
+    "core.projects",
+    "core.rubros",
+    "core.items",
+    "core.travels",
+    "core.persons",
+    "core.counterparts",
+    "core.activities",
+    "core.tasks",
+    "core.detailContracts",
+    "core.contracts",
+    "core.movements",
+    "core.cdps",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -73,8 +102,17 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+ROOT_URLCONF = "sgr.urls"
 ROOT_URLCONF = "sgr.urls"
 
 TEMPLATES = [
@@ -93,6 +131,10 @@ TEMPLATES = [
     },
 ]
 
+if DEBUG:
+    TEMPLATES[0]["DIRS"] = [os.path.join(BASE_DIR, "dist")]
+
+WSGI_APPLICATION = "sgr.wsgi.application"
 if DEBUG:
     TEMPLATES[0]["DIRS"] = [os.path.join(BASE_DIR, "dist")]
 
@@ -120,14 +162,18 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
@@ -137,7 +183,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = "en-co"
+LANGUAGE_CODE = "en-co"
 
+TIME_ZONE = "America/Bogota"
 TIME_ZONE = "America/Bogota"
 
 USE_I18N = True
@@ -148,6 +196,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "dist/static")]
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "dist/static")]
