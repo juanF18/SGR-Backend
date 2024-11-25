@@ -1,4 +1,8 @@
 from django.db import models
+<<<<<<< HEAD
+from core.entities.models import Entity
+=======
+>>>>>>> develop
 
 
 # Create your models here.
@@ -14,6 +18,12 @@ class Project(models.Model):
     file_activities_url = models.CharField(
         "file_activities_url", max_length=150, blank=True, null=True
     )
+<<<<<<< HEAD
+    entity_id = models.ForeignKey(
+        Entity, on_delete=models.SET_NULL, null=True, blank=True
+    )
+=======
+>>>>>>> develop
     created_at = models.DateTimeField("created_at", auto_now_add=True)
     updated_at = models.DateTimeField("updated_at", auto_now=True)
     deleted_at = models.DateTimeField("deleted_at", blank=True, null=True)
