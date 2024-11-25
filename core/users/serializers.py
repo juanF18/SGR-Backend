@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import User
-<<<<<<< HEAD
 from core.roles.serializers import RoleSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django import forms
@@ -85,11 +84,3 @@ class UserValidator(forms.Form):
             )
         ],
     )
-=======
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = "__all__"
->>>>>>> develop

@@ -1,17 +1,13 @@
 from rest_framework import serializers
 from .models import Project
-<<<<<<< HEAD
 from django import forms
 from django.core import validators
-=======
->>>>>>> develop
 
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = "__all__"
-<<<<<<< HEAD
 
 
 class ProjectValidator(forms.Form):
@@ -53,5 +49,3 @@ class ProjectValidator(forms.Form):
 
     start_date = forms.DateField(required=True)
     end_date = forms.DateField(required=True)
-=======
->>>>>>> develop

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from rest_framework import viewsets
 from .models import Project
 from .serializers import ProjectSerializer, ProjectValidator
@@ -89,8 +88,3 @@ class ProjectDetail(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-=======
-from django.shortcuts import render
-
-# Create your views here.
->>>>>>> develop
