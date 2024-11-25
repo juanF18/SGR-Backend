@@ -4,7 +4,7 @@ from django.db import models
 # Create your models here.
 class Entity(models.Model):
     name = models.CharField("name", max_length=100, null=True, blank=True)
-    nit = models.CharField("nit", max_length=100, null=True, blank=True)
+    nit = models.CharField("nit", max_length=100, unique=True, null=True, blank=True)
     email = models.EmailField("email", max_length=100, null=True, blank=True)
     phone = models.CharField("phone", max_length=100, null=True, blank=True)
     address = models.CharField("address", max_length=100, null=True, blank=True)

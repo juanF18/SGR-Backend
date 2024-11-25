@@ -1,4 +1,5 @@
 from django.db import models
+from core.rubros.models import Rubro
 
 
 # Create your models here.
@@ -11,6 +12,9 @@ class Person(models.Model):
         "value_hour", max_digits=10, decimal_places=2, default=0
     )
     total = models.DecimalField("total", max_digits=10, decimal_places=2, default=0)
+    rubro_id = models.ForeignKey(
+        Rubro, on_delete=models.SET_NULL, blank=True, null=True
+    )
     created_at = models.DateTimeField("created_at", auto_now_add=True)
     updated_at = models.DateTimeField("updated_at", auto_now=True)
     deleted_at = models.DateTimeField("deleted_at", blank=True, null=True)
