@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from .models import cdps
+from .models import Cdps
 
 
-class CDPSSerializer(serializers.ModelSerializer):
+class CdpsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = cdps
+        model = Cdps
         fields = "__all__"
