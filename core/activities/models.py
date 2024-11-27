@@ -1,8 +1,12 @@
+import uuid
 from django.db import models
 
 
 # Create your models here.
 class Activity(models.Model):
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False, unique=True
+    )
     name = models.CharField("name", max_length=150, null=True, blank=True)
     description = models.TextField("description", null=True, blank=True)
     type = models.CharField("type", max_length=150, null=True, blank=True)

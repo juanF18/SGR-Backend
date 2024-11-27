@@ -24,6 +24,15 @@ rubro_request_body = openapi.Schema(
 
 
 class RubroView(APIView):
+
+    """
+    Class to handle HTTP requests related to rubros
+
+    @methods:
+    - get: Get all rubros
+    - post: Create a new rubro
+    """
+
     # Documentar el método GET para obtener todos los rubros
     @swagger_auto_schema(
         operation_description="Obtener todos los rubros",
@@ -36,15 +45,18 @@ class RubroView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all rubros
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Rubro.objects.all()
             rubro_serializer = RubroSerializer(data, many=True)
-            response = {
-                "message": "Rubros retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "rubros": rubro_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(rubro_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving rubros: {str(e)}",
@@ -67,6 +79,13 @@ class RubroView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new rubro
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             project = Project.objects.get(id=data["project_id"])
@@ -76,12 +95,8 @@ class RubroView(APIView):
                 project_id=project,
             )
             rubro_serializer = RubroSerializer(rubro, many=False)
-            response = {
-                "message": "Rubro created successfully",
-                "status": status.HTTP_201_CREATED,
-                "rubro": rubro_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(rubro_serializer.data, status=status.HTTP_201_CREATED)
         except Project.DoesNotExist:
             response = {
                 "message": "Project does not exist",
@@ -97,6 +112,14 @@ class RubroView(APIView):
 
 
 class RubroDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific rubro
+
+    @methods:
+    - get: Get a specific rubro by ID
+    """
+
     # Documentar el método GET para obtener un rubro específico por ID
     @swagger_auto_schema(
         operation_description="Obtener un rubro específico por ID",
@@ -109,15 +132,19 @@ class RubroDetailView(APIView):
         },
     )
     def get(self, request, pk):
+
+        """
+        Get a specific rubro by ID
+        @param request: HTTP request
+        @param pk: Rubro ID
+        @return: JSON response
+        """
+
         try:
             rubro = Rubro.objects.get(id=pk)
             rubro_serializer = RubroSerializer(rubro, many=False)
-            response = {
-                "message": "Rubro retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "rubro": rubro_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(rubro_serializer.data, status=status.HTTP_200_OK)
         except Rubro.DoesNotExist:
             response = {
                 "message": "Rubro does not exist",

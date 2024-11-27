@@ -45,6 +45,15 @@ activity_request_body = openapi.Schema(
 
 
 class ActivityView(APIView):
+
+    """
+    Class to handle the requests related to the activities
+
+    @methods:
+    - get: Get all activities
+    - post: Create a new activity
+    """
+
     # Documentar el método GET para obtener actividades
     @swagger_auto_schema(
         operation_description="Obtener todas las actividades",
@@ -57,15 +66,18 @@ class ActivityView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all the activities
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Activity.objects.all()
             activity_serializer = ActivitySerializer(data, many=True)
-            response = {
-                "message": "Activities retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "activities": activity_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(activity_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving activities: {str(e)}",
@@ -88,6 +100,13 @@ class ActivityView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new activity
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             project = Project.objects.get(id=data["project_id"])
@@ -103,12 +122,8 @@ class ActivityView(APIView):
                 rubro_id=rubro,
             )
             activity_serializer = ActivitySerializer(activity, many=False)
-            response = {
-                "message": "Activity created successfully",
-                "status": status.HTTP_201_CREATED,
-                "activity": activity_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(activity_serializer.data, status=status.HTTP_201_CREATED)
         except Project.DoesNotExist:
             response = {
                 "message": "Project does not exist",
@@ -130,6 +145,14 @@ class ActivityView(APIView):
 
 
 class ActivityDetailView(APIView):
+
+    """
+    Class to handle the requests related to the activity details
+
+    @methods:
+    - get: Get a specific activity by ID
+    """
+
     # Documentar el método GET para obtener el detalle de una actividad
     @swagger_auto_schema(
         operation_description="Obtener los detalles de una actividad",
@@ -143,15 +166,19 @@ class ActivityDetailView(APIView):
         },
     )
     def get(self, request, pk):
+
+        """
+        Get a specific activity by ID
+        @param request: HTTP request
+        @param pk: Activity ID
+        @return: JSON response
+        """
+
         try:
             activity = Activity.objects.get(id=pk)
             activity_serializer = ActivitySerializer(activity)
-            response = {
-                "message": "Activity retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "activity": activity_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(activity_serializer.data, status=status.HTTP_200_OK)
         except Activity.DoesNotExist:
             response = {
                 "message": "Activity does not exist",

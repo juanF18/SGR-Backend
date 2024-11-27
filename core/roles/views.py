@@ -17,6 +17,16 @@ role_request_body = openapi.Schema(
 
 
 class RoleView(APIView):
+
+    """
+    Class to handle HTTP requests related to roles
+
+    @methods:
+    - get: Get all roles
+    - post: Create a new role
+    - put: Update an existing role
+    """
+
     # Documentar el método GET para obtener todos los roles
     @swagger_auto_schema(
         operation_description="Obtener todos los roles",
@@ -29,15 +39,16 @@ class RoleView(APIView):
         },
     )
     def get(self, request):
+        """
+        Get all roles
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Role.objects.all()
             role_serializer = RoleSerializer(data, many=True)
-            response = {
-                "message": "Roles retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "roles": role_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+            return Response(role_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving roles: {str(e)}",
@@ -60,6 +71,13 @@ class RoleView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new role
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             role_validator = RoleValidator(data)
@@ -74,12 +92,7 @@ class RoleView(APIView):
             )
             role_serializer = RoleSerializer(role, many=False)
 
-            response = {
-                "message": "Role created successfully",
-                "status": status.HTTP_201_CREATED,
-                "role": role_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(role_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             response = {
                 "message": f"Error creating role: {str(e)}",
@@ -103,6 +116,14 @@ class RoleView(APIView):
         },
     )
     def put(self, request, id):
+
+        """
+        Update an existing role
+        @param request: HTTP request
+        @param id: Role ID
+        @return: JSON response
+        """
+
         try:
             data = request.data
             role = self.get_object(id)
@@ -116,24 +137,14 @@ class RoleView(APIView):
             role.name = data["name"]
             role.save()
             role_serializer = RoleSerializer(role, many=False)
-            response = {
-                "message": "Role updated successfully",
-                "status": status.HTTP_200_OK,
-                "role": role_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(role_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error updating role: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def get_object(self, id):
-        try:
-            return Role.objects.get(id=id)
-        except Role.DoesNotExist:
-            return None
 
 
 class RoleDetailView(APIView):
@@ -149,15 +160,19 @@ class RoleDetailView(APIView):
         },
     )
     def get(self, request, id):
+
+        """
+        Get a specific role by ID
+        @param request: HTTP request
+        @param id: Role ID
+        @return: JSON response
+        """
+
         try:
             role = Role.objects.get(id=id)
             role_serializer = RoleSerializer(role, many=False)
-            response = {
-                "message": "Role retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "role": role_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(role_serializer.data, status=status.HTTP_200_OK)
         except Role.DoesNotExist:
             response = {
                 "message": "Role not found",

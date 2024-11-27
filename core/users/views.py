@@ -40,6 +40,15 @@ user_request_body = openapi.Schema(
 
 # Documentar la vista para obtener todos los usuarios y crear uno nuevo
 class UserView(APIView):
+
+    """
+    Class to handle HTTP requests related to users
+
+    @methods:
+    - get: Get all users
+    - post: Create a new user
+    """
+    
     @swagger_auto_schema(
         operation_description="Obtener todos los usuarios",
         responses={
@@ -51,15 +60,18 @@ class UserView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all users
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             users = User.objects.all()
             user_serializer = UserSerializer(users, many=True)
-            response = {
-                "message": "Users retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "users": user_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(user_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving users: {str(e)}",
@@ -79,6 +91,13 @@ class UserView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new user
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             user_validator = UserValidator(data)
@@ -98,12 +117,8 @@ class UserView(APIView):
                 entity_id=data["entity_id"],
             )
             user_serializer = UserSerializer(user, many=False)
-            response = {
-                "message": "User created successfully",
-                "status": status.HTTP_201_CREATED,
-                "user": user_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(user_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             response = {
                 "message": f"Error creating user: {str(e)}",
@@ -114,6 +129,14 @@ class UserView(APIView):
 
 # Documentar la vista para obtener un usuario específico
 class UserDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific user
+
+    @methods:
+    - get: Get a specific user by ID
+    """
+
     @swagger_auto_schema(
         operation_description="Obtener un usuario específico por ID",
         responses={
@@ -125,15 +148,19 @@ class UserDetailView(APIView):
         },
     )
     def get(self, request, pk):
+        
+        """
+        Get a specific user by ID
+        @param request: HTTP request
+        @param pk: User ID
+        @return: JSON response
+        """
+
         try:
             user = User.objects.get(id=pk)
             user_serializer = UserSerializer(user, many=False)
-            response = {
-                "message": "User retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "user": user_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(user_serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             response = {
                 "message": "User not found",

@@ -1,9 +1,11 @@
+import uuid
 from django.db import models
 from core.rubros.models import Rubro
 
 
 # Create your models here.
 class Cdps(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     number = models.CharField("number", max_length=50, null=True, blank=True)
     expedition_date = models.DateField("expedition_date", null=True, blank=True)
     amount = models.DecimalField(

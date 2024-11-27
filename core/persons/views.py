@@ -46,6 +46,15 @@ person_request_body = openapi.Schema(
 
 
 class PersonView(APIView):
+
+    """
+    Class to handle HTTP requests related to persons
+
+    @methods:
+    - get: Get all persons
+    - post: Create a new person
+    """
+
     # Documentar el método GET para obtener todas las personas
     @swagger_auto_schema(
         operation_description="Obtener todas las personas",
@@ -58,15 +67,18 @@ class PersonView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all persons
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Person.objects.all()
             person_serializer = PersonSerializer(data, many=True)
-            response = {
-                "message": "Persons retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "persons": person_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(person_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving persons: {str(e)}",
@@ -87,6 +99,13 @@ class PersonView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new person
+        @param request: HTTP request
+        @return: JSON response
+        """
+        
         try:
             data = request.data
             rubro = Rubro.objects.get(id=data["rubro_id"])
@@ -100,13 +119,8 @@ class PersonView(APIView):
                 rubro_id=rubro,
             )
             person_serializer = PersonSerializer(person, many=False)
-            response = {
-                "message": "Person created successfully",
-                "status": status.HTTP_201_CREATED,
-                "person": person_serializer.data,
-            }
 
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(person_serializer.data, status=status.HTTP_201_CREATED)
         except Rubro.DoesNotExist:
             response = {
                 "message": "Rubro does not exist",
@@ -122,6 +136,14 @@ class PersonView(APIView):
 
 
 class PersonDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific person
+    
+    @methods:
+    - get: Get a specific person by ID
+    """
+
     # Documentar el método GET para obtener una persona específica por ID
     @swagger_auto_schema(
         operation_description="Obtener una persona específica por ID",
@@ -134,15 +156,19 @@ class PersonDetailView(APIView):
         },
     )
     def get(self, request, id):
+
+        """
+        Get a specific person by ID
+        @param request: HTTP request
+        @param id: Person ID
+        @return: JSON response
+        """
+
         try:
             person = Person.objects.get(id=id)
             person_serializer = PersonSerializer(person, many=False)
-            response = {
-                "message": "Person retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "person": person_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(person_serializer.data, status=status.HTTP_200_OK)
         except Person.DoesNotExist:
             response = {
                 "message": "Person does not exist",

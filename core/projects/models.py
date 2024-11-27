@@ -1,9 +1,11 @@
+import uuid
 from django.db import models
 from core.entities.models import Entity
 
 
 # Create your models here.
 class Project(models.Model):
+    id = models.UUIDField("id", primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField("name", max_length=100, blank=True, null=True)
     description = models.TextField("description", blank=True, null=True)
     value = models.DecimalField("value", max_digits=10, decimal_places=2, default=0)
