@@ -1,15 +1,56 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Item
 from .serializers import ItemSerializer
 from core.rubros.models import Rubro
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
-# Create your views here.
+# Definir el cuerpo de la solicitud para el POST en ItemView
+item_request_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "description": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Descripción del item"
+        ),
+        "justificacion": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Justificación del item"
+        ),
+        "quantity": openapi.Schema(
+            type=openapi.TYPE_INTEGER, description="Cantidad del item"
+        ),
+        "unit_value": openapi.Schema(
+            type=openapi.TYPE_NUMBER,
+            format=openapi.FORMAT_FLOAT,
+            description="Valor unitario del item",
+        ),
+        "total_value": openapi.Schema(
+            type=openapi.TYPE_NUMBER,
+            format=openapi.FORMAT_FLOAT,
+            description="Valor total del item",
+        ),
+        "rubro_id": openapi.Schema(
+            type=openapi.TYPE_INTEGER,
+            description="ID del rubro relacionado con el item",
+        ),
+    },
+)
+
+
 class ItemView(APIView):
-
+    # Documentar el método GET para obtener todos los items
+    @swagger_auto_schema(
+        operation_description="Obtener todos los items",
+        responses={
+            200: openapi.Response(
+                description="Items recuperados correctamente",
+                schema=ItemSerializer(many=True),
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request):
         try:
             items = Item.objects.all()
@@ -27,6 +68,18 @@ class ItemView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # Documentar el método POST para crear un item
+    @swagger_auto_schema(
+        operation_description="Crear un nuevo item",
+        request_body=item_request_body,
+        responses={
+            201: openapi.Response(
+                description="Item creado correctamente", schema=ItemSerializer
+            ),
+            400: openapi.Response(description="Rubro no existe"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def post(self, request):
         try:
             data = request.data
@@ -61,7 +114,17 @@ class ItemView(APIView):
 
 
 class ItemDetailView(APIView):
-
+    # Documentar el método GET para obtener un item específico por ID
+    @swagger_auto_schema(
+        operation_description="Obtener un item específico por ID",
+        responses={
+            200: openapi.Response(
+                description="Item recuperado correctamente", schema=ItemSerializer
+            ),
+            400: openapi.Response(description="Item no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request, item_id):
         try:
             item = Item.objects.get(id=item_id)
