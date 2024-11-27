@@ -1,14 +1,45 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Task
 from rest_framework.views import APIView
 from .serializers import TaskSerializer
 from core.activities.models import Activity
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
-# Create your views here.
+# Definir el cuerpo de la solicitud para el POST de Task
+task_request_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "name": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Nombre de la tarea"
+        ),
+        "description": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Descripción de la tarea"
+        ),
+        "state": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Estado de la tarea"
+        ),
+        "activity_id": openapi.Schema(
+            type=openapi.TYPE_INTEGER, description="ID de la actividad asociada"
+        ),
+    },
+)
+
+
 class TaskView(APIView):
+    # Documentar el método GET para obtener todas las tareas
+    @swagger_auto_schema(
+        operation_description="Obtener todas las tareas",
+        responses={
+            200: openapi.Response(
+                description="Tareas recuperadas correctamente",
+                schema=TaskSerializer(many=True),
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request):
         try:
             data = Task.objects.all()
@@ -26,6 +57,20 @@ class TaskView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # Documentar el método POST para crear una nueva tarea
+    @swagger_auto_schema(
+        operation_description="Crear una nueva tarea",
+        request_body=task_request_body,
+        responses={
+            201: openapi.Response(
+                description="Tarea creada correctamente", schema=TaskSerializer
+            ),
+            400: openapi.Response(
+                description="Datos inválidos para la creación de la tarea"
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def post(self, request):
         try:
             data = request.data
@@ -42,7 +87,6 @@ class TaskView(APIView):
                 "status": status.HTTP_201_CREATED,
                 "task": task_serializer.data,
             }
-
             return Response(response, status=status.HTTP_201_CREATED)
         except Activity.DoesNotExist:
             response = {
@@ -59,6 +103,17 @@ class TaskView(APIView):
 
 
 class TaskDetailView(APIView):
+    # Documentar el método GET para obtener una tarea específica por ID
+    @swagger_auto_schema(
+        operation_description="Obtener una tarea específica por ID",
+        responses={
+            200: openapi.Response(
+                description="Tarea recuperada correctamente", schema=TaskSerializer
+            ),
+            400: openapi.Response(description="Tarea no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request, id):
         try:
             task = Task.objects.get(id=id)

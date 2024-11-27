@@ -3,11 +3,31 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Role
 from .serializers import RoleSerializer, RoleValidator
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
-# Create your views here.
+# Definir el cuerpo de la solicitud para el POST y PUT en RoleView
+role_request_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "name": openapi.Schema(type=openapi.TYPE_STRING, description="Nombre del rol"),
+    },
+)
+
+
 class RoleView(APIView):
-
+    # Documentar el método GET para obtener todos los roles
+    @swagger_auto_schema(
+        operation_description="Obtener todos los roles",
+        responses={
+            200: openapi.Response(
+                description="Roles recuperados correctamente",
+                schema=RoleSerializer(many=True),
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request):
         try:
             data = Role.objects.all()
@@ -25,6 +45,20 @@ class RoleView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # Documentar el método POST para crear un nuevo rol
+    @swagger_auto_schema(
+        operation_description="Crear un nuevo rol",
+        request_body=role_request_body,
+        responses={
+            201: openapi.Response(
+                description="Rol creado correctamente", schema=RoleSerializer
+            ),
+            400: openapi.Response(
+                description="Datos inválidos para la creación del rol"
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def post(self, request):
         try:
             data = request.data
@@ -53,6 +87,21 @@ class RoleView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    # Documentar el método PUT para actualizar un rol existente
+    @swagger_auto_schema(
+        operation_description="Actualizar un rol existente",
+        request_body=role_request_body,
+        responses={
+            200: openapi.Response(
+                description="Rol actualizado correctamente", schema=RoleSerializer
+            ),
+            400: openapi.Response(
+                description="Datos inválidos para la actualización del rol"
+            ),
+            404: openapi.Response(description="Rol no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def put(self, request, id):
         try:
             data = request.data
@@ -80,9 +129,25 @@ class RoleView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def get_object(self, id):
+        try:
+            return Role.objects.get(id=id)
+        except Role.DoesNotExist:
+            return None
+
 
 class RoleDetailView(APIView):
-
+    # Documentar el método GET para obtener un rol específico por ID
+    @swagger_auto_schema(
+        operation_description="Obtener un rol específico por ID",
+        responses={
+            200: openapi.Response(
+                description="Rol recuperado correctamente", schema=RoleSerializer
+            ),
+            404: openapi.Response(description="Rol no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request, id):
         try:
             role = Role.objects.get(id=id)
@@ -99,3 +164,9 @@ class RoleDetailView(APIView):
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error retrieving role: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
