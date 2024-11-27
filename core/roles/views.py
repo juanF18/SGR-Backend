@@ -100,6 +100,45 @@ class RoleView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class RoleDetailView(APIView):
+    # Documentar el método GET para obtener un rol específico por ID
+    @swagger_auto_schema(
+        operation_description="Obtener un rol específico por ID",
+        responses={
+            200: openapi.Response(
+                description="Rol recuperado correctamente", schema=RoleSerializer
+            ),
+            404: openapi.Response(description="Rol no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request, id):
+
+        """
+        Get a specific role by ID
+        @param request: HTTP request
+        @param id: Role ID
+        @return: JSON response
+        """
+
+        try:
+            role = Role.objects.get(id=id)
+            role_serializer = RoleSerializer(role, many=False)
+
+            return Response(role_serializer.data, status=status.HTTP_200_OK)
+        except Role.DoesNotExist:
+            response = {
+                "message": "Role not found",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error retrieving role: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     # Documentar el método PUT para actualizar un rol existente
     @swagger_auto_schema(
         operation_description="Actualizar un rol existente",
@@ -142,46 +181,6 @@ class RoleView(APIView):
         except Exception as e:
             response = {
                 "message": f"Error updating role: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class RoleDetailView(APIView):
-    # Documentar el método GET para obtener un rol específico por ID
-    @swagger_auto_schema(
-        operation_description="Obtener un rol específico por ID",
-        responses={
-            200: openapi.Response(
-                description="Rol recuperado correctamente", schema=RoleSerializer
-            ),
-            404: openapi.Response(description="Rol no encontrado"),
-            500: openapi.Response(description="Error interno del servidor"),
-        },
-    )
-    def get(self, request, id):
-
-        """
-        Get a specific role by ID
-        @param request: HTTP request
-        @param id: Role ID
-        @return: JSON response
-        """
-
-        try:
-            role = Role.objects.get(id=id)
-            role_serializer = RoleSerializer(role, many=False)
-
-            return Response(role_serializer.data, status=status.HTTP_200_OK)
-        except Role.DoesNotExist:
-            response = {
-                "message": "Role not found",
-                "status": status.HTTP_404_NOT_FOUND,
-            }
-            return Response(response, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            response = {
-                "message": f"Error retrieving role: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
