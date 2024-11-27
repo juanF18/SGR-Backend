@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from core.tasks.models import Task
 from core.contracts.models import Contract
@@ -5,6 +6,7 @@ from core.contracts.models import Contract
 
 # Create your models here.
 class DetailContract(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     description = models.CharField("description", max_length=150, null=True, blank=True)
     start_date = models.DateField("start_date", null=True, blank=True)
     end_date = models.DateField("end_date", null=True, blank=True)

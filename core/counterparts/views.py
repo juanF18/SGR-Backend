@@ -28,6 +28,15 @@ counterpart_request_body = openapi.Schema(
 
 
 class CounterpartView(APIView):
+
+    """
+    Class to handle HTTP requests related to counterparts
+
+    @methods:
+    - get: Get all counterparts
+    - post: Create a new counterpart
+    """
+
     # Documentar el método GET para obtener todas las contrapartes
     @swagger_auto_schema(
         operation_description="Obtener todas las contrapartes",
@@ -40,15 +49,18 @@ class CounterpartView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all counterparts
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Counterpart.objects.all()
             counterpart_serializer = CounterpartSerializer(data, many=True)
-            response = {
-                "message": "Counterparts retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "counterparts": counterpart_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+        
+            return Response(counterpart_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving counterparts: {str(e)}",
@@ -70,6 +82,13 @@ class CounterpartView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new counterpart
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             rubro = Rubro.objects.get(id=data["rubro_id"])
@@ -80,13 +99,8 @@ class CounterpartView(APIView):
                 rubro_id=rubro,
             )
             counterpart_serializer = CounterpartSerializer(counterpart, many=False)
-            response = {
-                "message": "Counterpart created successfully",
-                "status": status.HTTP_201_CREATED,
-                "counterpart": counterpart_serializer.data,
-            }
 
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(counterpart_serializer.data, status=status.HTTP_201_CREATED)
         except Rubro.DoesNotExist:
             response = {
                 "message": "Rubro does not exist",
@@ -102,6 +116,14 @@ class CounterpartView(APIView):
 
 
 class CounterpartDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a single counterpart
+
+    @methods:
+    - get: Get a counterpart by ID
+    """
+
     # Documentar el método GET para obtener los detalles de una contraparte
     @swagger_auto_schema(
         operation_description="Obtener los detalles de una contraparte",
@@ -115,15 +137,19 @@ class CounterpartDetailView(APIView):
         },
     )
     def get(self, request, id):
+
+        """
+        Get a counterpart by ID
+        @param request: HTTP request
+        @param id: Counterpart ID
+        @return: JSON response
+        """
+
         try:
             counterpart = Counterpart.objects.get(id=id)
             counterpart_serializer = CounterpartSerializer(counterpart, many=False)
-            response = {
-                "message": "Counterpart retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "counterpart": counterpart_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(counterpart_serializer.data, status=status.HTTP_200_OK)
         except Counterpart.DoesNotExist:
             response = {
                 "message": "Counterpart does not exist",

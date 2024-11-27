@@ -48,6 +48,15 @@ project_request_body = openapi.Schema(
 
 
 class ProjectView(APIView):
+
+    """
+    Class to handle HTTP requests related to projects
+
+    @methods:
+    - get: Get all projects
+    - post: Create a new project
+    """
+
     # Documentar el método GET para obtener todos los proyectos
     @swagger_auto_schema(
         operation_description="Obtener todos los proyectos",
@@ -60,15 +69,18 @@ class ProjectView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all projects
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Project.objects.all()
             project_serializer = ProjectSerializer(data, many=True)
-            response = {
-                "message": "Projects retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "projects": project_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(project_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving projects: {str(e)}",
@@ -91,6 +103,13 @@ class ProjectView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new project
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             entity = Entity.objects.get(id=data["entity_id"])
@@ -113,12 +132,7 @@ class ProjectView(APIView):
             )
             project_serializer = ProjectSerializer(project, many=False)
 
-            response = {
-                "message": "Project created successfully",
-                "status": status.HTTP_201_CREATED,
-                "project": project_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(project_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             response = {
                 "message": f"Error creating project: {str(e)}",
@@ -128,6 +142,14 @@ class ProjectView(APIView):
 
 
 class ProjectDetail(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific project
+    
+    @methods:
+    - get: Get a specific project by ID
+    """
+
     # Documentar el método GET para obtener un proyecto específico por ID
     @swagger_auto_schema(
         operation_description="Obtener un proyecto específico por ID",
@@ -144,12 +166,8 @@ class ProjectDetail(APIView):
         try:
             project = Project.objects.get(id=id)
             project_serializer = ProjectSerializer(project, many=False)
-            response = {
-                "message": "Project retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "project": project_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(project_serializer.data, status=status.HTTP_200_OK)
         except Project.DoesNotExist:
             response = {
                 "message": "Project not found",

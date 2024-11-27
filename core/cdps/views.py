@@ -40,6 +40,14 @@ cdps_request_body = openapi.Schema(
 
 
 class CdpsView(APIView):
+
+    """
+    Class to handle HTTP requests related to Cdps
+    
+    @methods:
+    - get: Get all Cdps
+    - post: Create a new CDP
+    """
     # Documentar el método GET para obtener todos los CDPs
     @swagger_auto_schema(
         operation_description="Obtener todos los CDPs",
@@ -52,15 +60,18 @@ class CdpsView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all Cdps
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Cdps.objects.all()
             cdps_serializer = CdpsSerializer(data, many=True)
-            response = {
-                "message": "Cdps retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "cdps": cdps_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(cdps_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving cdps: {str(e)}",
@@ -83,6 +94,13 @@ class CdpsView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new CDP
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             rubro = Rubro.objects.get(id=data["rubro_id"])
@@ -97,12 +115,8 @@ class CdpsView(APIView):
                 rubro_id=rubro,
             )
             cdps_serializer = CdpsSerializer(cdps, many=False)
-            response = {
-                "message": "Cdps created successfully",
-                "status": status.HTTP_201_CREATED,
-                "cdps": cdps_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(cdps_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             response = {
                 "message": f"Error creating cdps: {str(e)}",
@@ -112,6 +126,14 @@ class CdpsView(APIView):
 
 
 class CdpsDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific CDP
+
+    @methods:
+    - get: Get CDP details
+    """
+
     # Documentar el método GET para obtener el detalle de un CDP
     @swagger_auto_schema(
         operation_description="Obtener los detalles de un CDP",
@@ -124,15 +146,19 @@ class CdpsDetailView(APIView):
         },
     )
     def get(self, request, id):
+
+        """
+        Get a specific CDP by ID
+        @param request: HTTP request
+        @param id: CDP ID
+        @return: JSON response
+        """
+
         try:
             cdps = Cdps.objects.get(id=id)
             cdps_serializer = CdpsSerializer(cdps, many=False)
-            response = {
-                "message": "Cdps retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "cdps": cdps_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(cdps_serializer.data, status=status.HTTP_200_OK)
         except Cdps.DoesNotExist:
             response = {
                 "message": "Cdps does not exist",

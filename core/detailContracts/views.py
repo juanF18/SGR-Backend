@@ -38,6 +38,15 @@ detail_contract_request_body = openapi.Schema(
 
 
 class DetailContractView(APIView):
+
+    """
+    Class to handle HTTP requests related to detail contracts
+
+    @methods:
+    - get: Get all detail contracts
+    - post: Create a new detail contract
+    """
+
     # Documentar el método GET para obtener todos los detalles de contratos
     @swagger_auto_schema(
         operation_description="Obtener todos los detalles de los contratos",
@@ -50,15 +59,18 @@ class DetailContractView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all detail contracts
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = DetailContract.objects.all()
             detail_contract_serializer = DetailContractSerializer(data, many=True)
-            response = {
-                "message": "Detail contracts retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "detail_contracts": detail_contract_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(detail_contract_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving detail contracts: {str(e)}",
@@ -80,6 +92,13 @@ class DetailContractView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new detail contract
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             contract = Contract.objects.get(id=data["contract_id"])
@@ -94,13 +113,8 @@ class DetailContractView(APIView):
             detail_contract_serializer = DetailContractSerializer(
                 detail_contract, many=False
             )
-            response = {
-                "message": "Detail contract created successfully",
-                "status": status.HTTP_201_CREATED,
-                "detail_contract": detail_contract_serializer.data,
-            }
 
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(detail_contract_serializer.data, status=status.HTTP_201_CREATED)
         except Contract.DoesNotExist:
             response = {
                 "message": "Contract does not exist",
@@ -116,6 +130,14 @@ class DetailContractView(APIView):
 
 
 class DetailContractDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific detail contract
+
+    @methods:
+    - get: Get a detail contract by ID
+    """
+
     # Documentar el método GET para obtener un detalle de contrato por ID
     @swagger_auto_schema(
         operation_description="Obtener detalles de un contrato específico por ID",
@@ -129,15 +151,19 @@ class DetailContractDetailView(APIView):
         },
     )
     def get(self, request, id):
+
+        """
+        Get a detail contract by ID
+        @param request: HTTP request
+        @param id: Detail contract ID
+        @return: JSON response
+        """
+
         try:
             data = DetailContract.objects.get(id=id)
             detail_contract_serializer = DetailContractSerializer(data, many=False)
-            response = {
-                "message": "Detail contract retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "detail_contract": detail_contract_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(detail_contract_serializer.data, status=status.HTTP_200_OK)
         except DetailContract.DoesNotExist:
             response = {
                 "message": "Detail contract does not exist",

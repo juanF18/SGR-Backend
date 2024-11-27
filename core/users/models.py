@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from core.roles.models import Role
 from core.entities.models import Entity
@@ -20,6 +21,7 @@ class CustomManager(models.Manager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField("name", max_length=100, null=True, blank=True)
     last_name = models.CharField("last_name", max_length=100, null=True, blank=True)
     email = models.EmailField(

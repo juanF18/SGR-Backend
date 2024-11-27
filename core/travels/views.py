@@ -41,6 +41,15 @@ travel_request_body = openapi.Schema(
 
 
 class TravelView(APIView):
+
+    """
+    Class to handle HTTP requests related to travels
+
+    @methods:
+    - get: Get all travels
+    - post: Create a new travel
+    """
+
     # Documentar el método GET para obtener todos los viajes
     @swagger_auto_schema(
         operation_description="Obtener todos los viajes",
@@ -53,15 +62,18 @@ class TravelView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all travels
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Travel.objects.all()
             travel_serializer = TravelSerializer(data, many=True)
-            response = {
-                "message": "Travels retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "travels": travel_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(travel_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving travels: {str(e)}",
@@ -82,6 +94,13 @@ class TravelView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new travel
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             rubro = Rubro.objects.get(id=data["rubro_id"])
@@ -96,12 +115,8 @@ class TravelView(APIView):
                 rubro_id=rubro,
             )
             travel_serializer = TravelSerializer(travel, many=False)
-            response = {
-                "message": "Travel created successfully",
-                "status": status.HTTP_201_CREATED,
-                "travel": travel_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(travel_serializer.data, status=status.HTTP_201_CREATED)
         except Rubro.DoesNotExist:
             response = {
                 "message": "Rubro does not exist",
@@ -117,6 +132,13 @@ class TravelView(APIView):
 
 
 class TravelDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific travel
+
+    @methods:
+    - get: Get a specific travel by ID
+    """
     # Documentar el método GET para obtener un viaje específico por ID
     @swagger_auto_schema(
         operation_description="Obtener un viaje específico por ID",
@@ -129,15 +151,18 @@ class TravelDetailView(APIView):
         },
     )
     def get(self, request, pk):
+
+        """
+        Get a specific travel by ID
+        @param request: HTTP request
+        @param pk: Travel ID
+        @return: JSON response
+        """
         try:
             travel = Travel.objects.get(id=pk)
             travel_serializer = TravelSerializer(travel, many=False)
-            response = {
-                "message": "Travel retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "travel": travel_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(travel_serializer.data, status=status.HTTP_200_OK)
         except Travel.DoesNotExist:
             response = {
                 "message": "Travel does not exist",

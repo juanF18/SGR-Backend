@@ -1,9 +1,11 @@
+import uuid
 from django.db import models
 from core.cdps.models import Cdps
 
 
 # Create your models here.
 class Contract(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     contract_number = models.CharField(
         "contract_number", max_length=100, null=True, blank=True
     )

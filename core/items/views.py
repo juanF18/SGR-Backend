@@ -40,6 +40,15 @@ item_request_body = openapi.Schema(
 
 
 class ItemView(APIView):
+
+    """
+    Class to handle HTTP requests related to items
+
+    @methods:
+    - get: Get all items
+    - post: Create a new item
+    """
+
     # Documentar el método GET para obtener todos los items
     @swagger_auto_schema(
         operation_description="Obtener todos los items",
@@ -52,15 +61,18 @@ class ItemView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all items
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             items = Item.objects.all()
             item_serializer = ItemSerializer(items, many=True)
-            response = {
-                "message": "Items retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "items": item_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(item_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving items: {str(e)}",
@@ -81,6 +93,13 @@ class ItemView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new item
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             rubro = Rubro.objects.get(id=data["rubro_id"])
@@ -93,12 +112,8 @@ class ItemView(APIView):
                 rubro_id=rubro,
             )
             item_serializer = ItemSerializer(item)
-            response = {
-                "message": "Item created successfully",
-                "status": status.HTTP_201_CREATED,
-                "item": item_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(item_serializer.data, status=status.HTTP_201_CREATED)
         except Rubro.DoesNotExist:
             response = {
                 "message": "Rubro does not exist",
@@ -114,6 +129,14 @@ class ItemView(APIView):
 
 
 class ItemDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific item
+
+    @methods:
+    - get: Get a specific item by ID
+    """
+    
     # Documentar el método GET para obtener un item específico por ID
     @swagger_auto_schema(
         operation_description="Obtener un item específico por ID",
@@ -129,12 +152,8 @@ class ItemDetailView(APIView):
         try:
             item = Item.objects.get(id=item_id)
             item_serializer = ItemSerializer(item)
-            response = {
-                "message": "Item retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "item": item_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(item_serializer.data, status=status.HTTP_200_OK)
         except Item.DoesNotExist:
             response = {
                 "message": "Item does not exist",
