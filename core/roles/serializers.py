@@ -24,7 +24,7 @@ class RoleValidator(forms.Form):
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
-        fields = "__all__"
+        exclude = ["created_at", "updated_at", "deleted_at"]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
