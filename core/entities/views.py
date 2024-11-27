@@ -121,51 +121,7 @@ class EntityView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # Documentar el método PUT para actualizar una entidad
-    @swagger_auto_schema(
-        operation_description="Actualizar una entidad existente",
-        request_body=entity_request_body,
-        responses={
-            200: openapi.Response(
-                description="Entidad actualizada correctamente", schema=EntitySerializer
-            ),
-            404: openapi.Response(description="Entidad no encontrada"),
-            500: openapi.Response(description="Error interno del servidor"),
-        },
-    )
-    def put(self, request, id):
-
-        """
-        Update an existing entity
-        @param request: HTTP request
-        @param id: Entity ID
-        @return: JSON response
-        """
-
-        try:
-            entity = Entity.objects.get(id=id)
-            data = request.data
-            entity.name = data["name"]
-            entity.email = data["email"]
-            entity.phone = data["phone"]
-            entity.address = data["address"]
-            entity.city = data["city"]
-            entity.save()
-            entity_serializer = EntitySerializer(entity, many=False)
-
-            return Response(entity_serializer.data, status=status.HTTP_200_OK)
-        except Entity.DoesNotExist:
-            response = {
-                "message": "Entity not found",
-                "status": status.HTTP_404_NOT_FOUND,
-            }
-            return Response(response, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            response = {
-                "message": f"Error updating entity: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 
 
 class EntityDetailView(APIView):
@@ -211,6 +167,52 @@ class EntityDetailView(APIView):
         except Exception as e:
             response = {
                 "message": f"Error retrieving entity: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Documentar el método PUT para actualizar una entidad
+    @swagger_auto_schema(
+        operation_description="Actualizar una entidad existente",
+        request_body=entity_request_body,
+        responses={
+            200: openapi.Response(
+                description="Entidad actualizada correctamente", schema=EntitySerializer
+            ),
+            404: openapi.Response(description="Entidad no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, id):
+
+        """
+        Update an existing entity
+        @param request: HTTP request
+        @param id: Entity ID
+        @return: JSON response
+        """
+
+        try:
+            entity = Entity.objects.get(id=id)
+            data = request.data
+            entity.name = data["name"]
+            entity.email = data["email"]
+            entity.phone = data["phone"]
+            entity.address = data["address"]
+            entity.city = data["city"]
+            entity.save()
+            entity_serializer = EntitySerializer(entity, many=False)
+
+            return Response(entity_serializer.data, status=status.HTTP_200_OK)
+        except Entity.DoesNotExist:
+            response = {
+                "message": "Entity not found",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error updating entity: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
