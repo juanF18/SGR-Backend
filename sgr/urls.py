@@ -17,6 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from rest_framework import permissions
+from django.views.generic import RedirectView
 from django.urls import path
 from django.urls import include
 from drf_yasg.views import get_schema_view
@@ -36,6 +37,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path("", RedirectView.as_view(url="/swagger/", permanent=False)),
     path("admin/", admin.site.urls),
     path("api/", include("core.roles.urls")),
     path("api/", include("core.entities.urls")),

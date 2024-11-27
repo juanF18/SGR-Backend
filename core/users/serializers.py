@@ -7,12 +7,11 @@ from django.core import validators
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     role = RoleSerializer(many=False)
 
     class Meta:
         model = User
-        fields = "__all__"
+        exclude = ["created_at", "updated_at", "deleted_at"]
 
     def validate_identification(self, email):
         if User.objects.filter(email=email).exists():
