@@ -1,9 +1,11 @@
+import uuid
 from django.db import models
 from core.rubros.models import Rubro
 
 
 # Create your models here.
 class Item(models.Model):
+    id = models.UUIDField("id", primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     description = models.TextField("description", max_length=150, blank=True, null=True)
     justificacion = models.TextField(
         "justificacion", max_length=150, blank=True, null=True

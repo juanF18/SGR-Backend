@@ -1,9 +1,11 @@
+import uuid
 from django.db import models
 from core.rubros.models import Rubro
 
 
 # Create your models here.
 class Travel(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     origin = models.CharField("origin", max_length=100, blank=True, null=True)
     destination = models.CharField("destination", max_length=100, blank=True, null=True)
     transport = models.CharField("transport", max_length=100, blank=True, null=True)

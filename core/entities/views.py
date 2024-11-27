@@ -34,6 +34,16 @@ entity_request_body = openapi.Schema(
 
 
 class EntityView(APIView):
+
+    """
+    Class to handle HTTP requests related to entities
+
+    @methods:
+    - get: Get all entities
+    - post: Create a new entity
+    - put: Update an existing entity
+    """
+
     # Documentar el método GET para obtener todas las entidades
     @swagger_auto_schema(
         operation_description="Obtener todas las entidades",
@@ -46,15 +56,18 @@ class EntityView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all entities
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             entities = Entity.objects.all()
             entity_serializer = EntitySerializer(entities, many=True)
-            response = {
-                "message": "Entities retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "entities": entity_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(entity_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving entities: {str(e)}",
@@ -75,6 +88,13 @@ class EntityView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new entity
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             entity_validator = EntityValidator(data)
@@ -92,12 +112,8 @@ class EntityView(APIView):
                 email=data["email"],
             )
             entity_serializer = EntitySerializer(entity, many=False)
-            response = {
-                "message": "Entity created successfully",
-                "status": status.HTTP_201_CREATED,
-                "entity": entity_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(entity_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             response = {
                 "message": f"Error creating entity: {str(e)}",
@@ -118,6 +134,14 @@ class EntityView(APIView):
         },
     )
     def put(self, request, id):
+
+        """
+        Update an existing entity
+        @param request: HTTP request
+        @param id: Entity ID
+        @return: JSON response
+        """
+
         try:
             entity = Entity.objects.get(id=id)
             data = request.data
@@ -128,12 +152,8 @@ class EntityView(APIView):
             entity.city = data["city"]
             entity.save()
             entity_serializer = EntitySerializer(entity, many=False)
-            response = {
-                "message": "Entity updated successfully",
-                "status": status.HTTP_200_OK,
-                "entity": entity_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(entity_serializer.data, status=status.HTTP_200_OK)
         except Entity.DoesNotExist:
             response = {
                 "message": "Entity not found",
@@ -149,6 +169,14 @@ class EntityView(APIView):
 
 
 class EntityDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific entity
+
+    @methods:
+    - get: Get a specific entity by ID
+    """
+
     # Documentar el método GET para obtener una entidad específica por ID
     @swagger_auto_schema(
         operation_description="Obtener una entidad específica por ID",
@@ -161,15 +189,19 @@ class EntityDetailView(APIView):
         },
     )
     def get(self, request, id):
+
+        """
+        Get a specific entity by ID
+        @param request: HTTP request
+        @param id: Entity ID
+        @return: JSON response
+        """
+
         try:
             entity = Entity.objects.get(id=id)
             entity_serializer = EntitySerializer(entity, many=False)
-            response = {
-                "message": "Entity retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "entity": entity_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(entity_serializer.data, status=status.HTTP_200_OK)
         except Entity.DoesNotExist:
             response = {
                 "message": "Entity not found",

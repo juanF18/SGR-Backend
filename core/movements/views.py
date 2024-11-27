@@ -33,6 +33,15 @@ movement_request_body = openapi.Schema(
 
 
 class MovementView(APIView):
+
+    """
+    Class to handle HTTP requests related to movements
+
+    @methods:
+    - get: Get all movements
+    - post: Create a new movement
+    """
+
     # Documentar el método GET para obtener todos los movimientos
     @swagger_auto_schema(
         operation_description="Obtener todos los movimientos",
@@ -45,15 +54,18 @@ class MovementView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all movements
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Movement.objects.all()
             movement_serializer = MovementSerializer(data, many=True)
-            response = {
-                "message": "Movements retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "movements": movement_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(movement_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving movements: {str(e)}",
@@ -74,6 +86,13 @@ class MovementView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new movement
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             contract = Contract.objects.get(id=data["contract_id"])
@@ -84,13 +103,8 @@ class MovementView(APIView):
                 contract_id=contract,
             )
             movement_serializer = MovementSerializer(movement, many=False)
-            response = {
-                "message": "Movement created successfully",
-                "status": status.HTTP_201_CREATED,
-                "movement": movement_serializer.data,
-            }
 
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(movement_serializer.data, status=status.HTTP_201_CREATED)
         except Contract.DoesNotExist:
             response = {
                 "message": "Contract does not exist",
@@ -106,6 +120,14 @@ class MovementView(APIView):
 
 
 class MovementDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific movement
+
+    @methods:
+    - get: Get a specific movement by ID
+    """
+
     # Documentar el método GET para obtener un movimiento específico por ID
     @swagger_auto_schema(
         operation_description="Obtener un movimiento específico por ID",
@@ -122,12 +144,8 @@ class MovementDetailView(APIView):
         try:
             movement = Movement.objects.get(id=id)
             movement_serializer = MovementSerializer(movement, many=False)
-            response = {
-                "message": "Movement retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "movement": movement_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(movement_serializer.data, status=status.HTTP_200_OK)
         except Movement.DoesNotExist:
             response = {
                 "message": "Movement does not exist",

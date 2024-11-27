@@ -29,6 +29,15 @@ task_request_body = openapi.Schema(
 
 
 class TaskView(APIView):
+
+    """
+    Class to handle HTTP requests related to tasks
+
+    @methods:
+    - get: Get all tasks
+    - post: Create a new task
+    """
+
     # Documentar el método GET para obtener todas las tareas
     @swagger_auto_schema(
         operation_description="Obtener todas las tareas",
@@ -41,15 +50,18 @@ class TaskView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all tasks
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Task.objects.all()
             task_serializer = TaskSerializer(data, many=True)
-            response = {
-                "message": "Tasks retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "tasks": task_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(task_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving tasks: {str(e)}",
@@ -72,6 +84,13 @@ class TaskView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new task
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             activity = Activity.objects.get(id=data["activity_id"])
@@ -82,12 +101,8 @@ class TaskView(APIView):
                 activity_id=activity,
             )
             task_serializer = TaskSerializer(task, many=False)
-            response = {
-                "message": "Task created successfully",
-                "status": status.HTTP_201_CREATED,
-                "task": task_serializer.data,
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
+
+            return Response(task_serializer.data, status=status.HTTP_201_CREATED)
         except Activity.DoesNotExist:
             response = {
                 "message": "Activity does not exist",
@@ -103,6 +118,14 @@ class TaskView(APIView):
 
 
 class TaskDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to a specific task
+    
+    @methods:
+    - get: Get a specific task by ID
+    """
+    
     # Documentar el método GET para obtener una tarea específica por ID
     @swagger_auto_schema(
         operation_description="Obtener una tarea específica por ID",
@@ -115,15 +138,19 @@ class TaskDetailView(APIView):
         },
     )
     def get(self, request, id):
+
+        """
+        Get a specific task by ID
+        @param request: HTTP request
+        @param id: Task ID
+        @return: JSON response
+        """
+
         try:
             task = Task.objects.get(id=id)
             task_serializer = TaskSerializer(task, many=False)
-            response = {
-                "message": "Task retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "task": task_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+    
+            return Response(task_serializer.data, status=status.HTTP_200_OK)
         except Task.DoesNotExist:
             response = {
                 "message": "Task does not exist",

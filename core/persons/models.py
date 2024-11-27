@@ -1,9 +1,11 @@
+import uuid
 from django.db import models
 from core.rubros.models import Rubro
 
 
 # Create your models here.
 class Person(models.Model):
+    id = models.UUIDField("id", primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     job_title = models.CharField("job_title", max_length=100, blank=True, null=True)
     dedication = models.CharField("dedication", max_length=100, blank=True, null=True)
     weeks = models.CharField("weeks", max_length=100, blank=True, null=True)

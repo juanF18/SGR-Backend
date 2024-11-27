@@ -58,6 +58,15 @@ contract_request_body = openapi.Schema(
 
 
 class ContractView(APIView):
+
+    """
+    Class to handle HTTP requests related to contracts
+
+    @methods:
+    - get: Get all contracts
+    - post: Create a new contract
+    """
+
     # Documentar el método GET para obtener todos los contratos
     @swagger_auto_schema(
         operation_description="Obtener todos los contratos",
@@ -70,15 +79,18 @@ class ContractView(APIView):
         },
     )
     def get(self, request):
+
+        """
+        Get all contracts
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = Contract.objects.all()
             contract_serializer = ContractSerializer(data, many=True)
-            response = {
-                "message": "Contracts retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "contracts": contract_serializer.data,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+
+            return Response(contract_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
                 "message": f"Error retrieving contracts: {str(e)}",
@@ -99,6 +111,13 @@ class ContractView(APIView):
         },
     )
     def post(self, request):
+
+        """
+        Create a new contract
+        @param request: HTTP request
+        @return: JSON response
+        """
+
         try:
             data = request.data
             cpds = Cdps.objects.get(id=data["cpds_id"])
@@ -118,13 +137,8 @@ class ContractView(APIView):
                 cpds_id=cpds,
             )
             contract_serializer = ContractSerializer(contract, many=False)
-            response = {
-                "message": "Contract created successfully",
-                "status": status.HTTP_201_CREATED,
-                "contract": contract_serializer.data,
-            }
 
-            return Response(response, status=status.HTTP_201_CREATED)
+            return Response(contract_serializer.data, status=status.HTTP_201_CREATED)
         except Cdps.DoesNotExist:
             response = {
                 "message": "Cdps does not exist",
@@ -140,6 +154,14 @@ class ContractView(APIView):
 
 
 class ContractDetailView(APIView):
+
+    """
+    Class to handle HTTP requests related to contract details
+
+    @methods:
+    - get: Get contract details
+    """
+
     # Documentar el método GET para obtener los detalles de un contrato
     @swagger_auto_schema(
         operation_description="Obtener los detalles de un contrato",
@@ -153,14 +175,19 @@ class ContractDetailView(APIView):
         },
     )
     def get(self, request, pk):
+
+        """
+        Get a specific contract by ID
+        @param request: HTTP request
+        @param pk: Contract ID
+        @return: JSON response
+        """
+
         try:
             contract = Contract.objects.get(id=pk)
-            response = {
-                "message": "Contract retrieved successfully",
-                "status": status.HTTP_200_OK,
-                "contract": contract,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+            contract_serializer = ContractSerializer(contract, many=False)
+
+            return Response(contract_serializer.data, status=status.HTTP_200_OK)
         except Contract.DoesNotExist:
             response = {
                 "message": "Contract does not exist",

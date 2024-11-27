@@ -26,13 +26,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
-SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", default=False)
-DEBUG = os.environ.get("DEBUG", default=False)
 
-ALLOWED_HOSTS = ["*"]
 ALLOWED_HOSTS = ["*"]
 
 
@@ -77,17 +74,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "sgr.urls"
 ROOT_URLCONF = "sgr.urls"
 
 TEMPLATES = [
@@ -110,10 +98,7 @@ if DEBUG:
     TEMPLATES[0]["DIRS"] = [os.path.join(BASE_DIR, "dist")]
 
 WSGI_APPLICATION = "sgr.wsgi.application"
-if DEBUG:
-    TEMPLATES[0]["DIRS"] = [os.path.join(BASE_DIR, "dist")]
 
-WSGI_APPLICATION = "sgr.wsgi.application"
 
 
 # Database
@@ -154,9 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = "en-co"
-LANGUAGE_CODE = "en-co"
 
-TIME_ZONE = "America/Bogota"
 TIME_ZONE = "America/Bogota"
 
 USE_I18N = True
@@ -172,11 +155,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "dist/static")]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "dist/static")]
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
