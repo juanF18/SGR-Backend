@@ -1,5 +1,3 @@
-from django.shortcuts import render
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -7,10 +5,51 @@ from .serializers import MyTokenObtainPairSerializer, UserSerializer, UserValida
 from .models import User
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import make_password
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
-# Create your views here.
+# Definir el cuerpo de la solicitud para la creación de un usuario
+user_request_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "name": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Nombre del usuario"
+        ),
+        "last_name": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Apellido del usuario"
+        ),
+        "email": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Correo electrónico del usuario"
+        ),
+        "identification": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Identificación del usuario"
+        ),
+        "password": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Contraseña del usuario"
+        ),
+        "role_id": openapi.Schema(
+            type=openapi.TYPE_INTEGER, description="ID del rol del usuario"
+        ),
+        "entity_id": openapi.Schema(
+            type=openapi.TYPE_INTEGER, description="ID de la entidad asociada"
+        ),
+    },
+)
+
+
+# Documentar la vista para obtener todos los usuarios y crear uno nuevo
 class UserView(APIView):
+    @swagger_auto_schema(
+        operation_description="Obtener todos los usuarios",
+        responses={
+            200: openapi.Response(
+                description="Usuarios recuperados correctamente",
+                schema=UserSerializer(many=True),
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request):
         try:
             users = User.objects.all()
@@ -28,6 +67,17 @@ class UserView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @swagger_auto_schema(
+        operation_description="Crear un nuevo usuario",
+        request_body=user_request_body,
+        responses={
+            201: openapi.Response(
+                description="Usuario creado correctamente", schema=UserSerializer
+            ),
+            400: openapi.Response(description="Datos de usuario inválidos"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def post(self, request):
         try:
             data = request.data
@@ -62,8 +112,18 @@ class UserView(APIView):
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# Documentar la vista para obtener un usuario específico
 class UserDetailView(APIView):
-
+    @swagger_auto_schema(
+        operation_description="Obtener un usuario específico por ID",
+        responses={
+            200: openapi.Response(
+                description="Usuario recuperado correctamente", schema=UserSerializer
+            ),
+            404: openapi.Response(description="Usuario no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
     def get(self, request, pk):
         try:
             user = User.objects.get(id=pk)
@@ -88,5 +148,19 @@ class UserDetailView(APIView):
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# Documentar la vista para login (obtener token)
 class LoginUserView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+    @swagger_auto_schema(
+        operation_description="Iniciar sesión y obtener un token",
+        responses={
+            200: openapi.Response(
+                description="Token obtenido correctamente",
+                schema=MyTokenObtainPairSerializer,
+            ),
+            400: openapi.Response(description="Credenciales incorrectas"),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)

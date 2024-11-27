@@ -47,32 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     ## Third party apps
     "rest_framework",
-    "corsheaders",
-    ## Local apps
-    "core.roles",
-    "core.entities",
-    "core.users",
-    "core.comments",
-    "core.projects",
-    "core.rubros",
-    "core.items",
-    "core.travels",
-    "core.persons",
-    "core.counterparts",
-    "core.activities",
-    "core.tasks",
-    "core.detailContracts",
-    "core.contracts",
-    "core.movements",
-    "core.cdps",
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    ## Third party apps
-    "rest_framework",
+    "drf_yasg",
     "corsheaders",
     ## Local apps
     "core.roles",
@@ -151,7 +126,7 @@ DATABASES = {
         "USER": os.environ.get("DB_USER"),
         "PASSWORD": os.environ.get("DB_PASSWORD"),
         "HOST": os.environ.get("DB_HOST"),
-        "PORT": "5432",
+        "PORT": os.environ.get("DB_PORT"),
     }
 }
 
@@ -162,18 +137,14 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
