@@ -17,7 +17,7 @@ class Project(models.Model):
     file_activities_url = models.CharField(
         "file_activities_url", max_length=150, blank=True, null=True
     )
-    entity_id = models.ForeignKey(
+    entity = models.ForeignKey(
         Entity, on_delete=models.SET_NULL, null=True, blank=True
     )
     created_at = models.DateTimeField("created_at", auto_now_add=True)

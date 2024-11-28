@@ -34,7 +34,7 @@ class Contract(models.Model):
         "contract_url", max_length=100, null=True, blank=True
     )
     observations = models.TextField("observations", null=True, blank=True)
-    cpds_id = models.ForeignKey(Cdps, on_delete=models.SET_NULL, null=True, blank=True)
+    cpds = models.ForeignKey(Cdps, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
