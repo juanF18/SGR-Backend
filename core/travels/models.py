@@ -13,7 +13,7 @@ class Travel(models.Model):
     cant_persons = models.IntegerField("cant_persons", blank=True, null=True)
     cant_days = models.IntegerField("cant_days", blank=True, null=True)
     total = models.DecimalField("total", max_digits=10, decimal_places=2, default=0)
-    rubro_id = models.ForeignKey(
+    rubro = models.ForeignKey(
         Rubro, on_delete=models.SET_NULL, blank=True, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)

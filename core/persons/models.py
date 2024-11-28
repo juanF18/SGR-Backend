@@ -14,7 +14,7 @@ class Person(models.Model):
         "value_hour", max_digits=10, decimal_places=2, default=0
     )
     total = models.DecimalField("total", max_digits=10, decimal_places=2, default=0)
-    rubro_id = models.ForeignKey(
+    rubro = models.ForeignKey(
         Rubro, on_delete=models.SET_NULL, blank=True, null=True
     )
     created_at = models.DateTimeField("created_at", auto_now_add=True)

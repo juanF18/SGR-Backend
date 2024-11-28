@@ -9,7 +9,7 @@ class Task(models.Model):
     name = models.CharField("name", max_length=100, null=True, blank=True)
     description = models.TextField("description", null=True, blank=True)
     state = models.CharField("state", max_length=100, null=True, blank=True)
-    activity_id = models.ForeignKey(
+    activity = models.ForeignKey(
         Activity, on_delete=models.SET_NULL, null=True, blank=True
     )
     created_at = models.DateTimeField("created_at", auto_now_add=True)

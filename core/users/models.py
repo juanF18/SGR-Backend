@@ -31,8 +31,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         "identification", max_length=100, null=True, blank=True
     )
     password = models.CharField("password", max_length=100, null=True, blank=True)
-    role_id = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
-    entity_id = models.ForeignKey(
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    entity = models.ForeignKey(
         Entity, on_delete=models.SET_NULL, null=True, blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)

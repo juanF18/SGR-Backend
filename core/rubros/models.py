@@ -10,7 +10,7 @@ class Rubro(models.Model):
     value_sgr = models.DecimalField(
         "value_sgr", max_digits=10, decimal_places=2, default=0
     )
-    project_id = models.ForeignKey(
+    project = models.ForeignKey(
         Project, on_delete=models.SET_NULL, blank=True, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)

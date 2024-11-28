@@ -17,7 +17,7 @@ class Cdps(models.Model):
     document_url = models.CharField(
         "document_url", max_length=150, null=True, blank=True
     )
-    rubro_id = models.ForeignKey(
+    rubro = models.ForeignKey(
         Rubro, on_delete=models.SET_NULL, null=True, blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
