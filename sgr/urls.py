@@ -27,7 +27,7 @@ schema_view = get_schema_view(
     openapi.Info(
         title="SGR API",
         default_version="v1",
-        description="Documentación de mi API usando Django REST Framework",
+        description="Documentación de SGR API usando Django REST Framework",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contacto@miempresa.com"),
         license=openapi.License(name="MIT License"),
