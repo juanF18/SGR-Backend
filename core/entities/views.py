@@ -14,17 +14,17 @@ entity_request_body = openapi.Schema(
         "name": openapi.Schema(
             type=openapi.TYPE_STRING, description="Nombre de la entidad"
         ),
-        "description": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Descripción de la entidad"
-        ),
-        "address": openapi.Schema(
+        "nit": openapi.Schema(
             type=openapi.TYPE_STRING, description="Dirección de la entidad"
+        ),
+        "email": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Correo electrónico de la entidad"
         ),
         "phone": openapi.Schema(
             type=openapi.TYPE_STRING, description="Teléfono de la entidad"
         ),
-        "email": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Correo electrónico de la entidad"
+        "address": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Dirección de la entidad"
         ),
         "city": openapi.Schema(
             type=openapi.TYPE_STRING, description="Ciudad de la entidad"
@@ -34,7 +34,6 @@ entity_request_body = openapi.Schema(
 
 
 class EntityView(APIView):
-
     """
     Class to handle HTTP requests related to entities
 
@@ -56,7 +55,6 @@ class EntityView(APIView):
         },
     )
     def get(self, request):
-
         """
         Get all entities
         @param request: HTTP request
@@ -88,7 +86,6 @@ class EntityView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new entity
         @param request: HTTP request
@@ -97,6 +94,7 @@ class EntityView(APIView):
 
         try:
             data = request.data
+            print("Esta es la data", data)
             entity_validator = EntityValidator(data)
             if not entity_validator.is_valid():
                 response = {
@@ -106,10 +104,11 @@ class EntityView(APIView):
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
             entity = Entity.objects.create(
                 name=data["name"],
-                description=data["description"],
-                address=data["address"],
-                phone=data["phone"],
+                nit=data["nit"],
                 email=data["email"],
+                phone=data["phone"],
+                address=data["address"],
+                city=data["city"],
             )
             entity_serializer = EntitySerializer(entity, many=False)
 
@@ -121,11 +120,8 @@ class EntityView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    
-
 
 class EntityDetailView(APIView):
-
     """
     Class to handle HTTP requests related to a specific entity
 
@@ -145,7 +141,6 @@ class EntityDetailView(APIView):
         },
     )
     def get(self, request, id):
-
         """
         Get a specific entity by ID
         @param request: HTTP request
@@ -184,7 +179,6 @@ class EntityDetailView(APIView):
         },
     )
     def put(self, request, id):
-
         """
         Update an existing entity
         @param request: HTTP request
@@ -216,3 +210,58 @@ class EntityDetailView(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    """
+    Class to handle HTTP requests related to a specific entity
+
+    @methods:
+    - get: Get a specific entity by ID
+    - delete: Delete a specific entity by ID
+    """
+
+    # Documentar el método DELETE para eliminar una entidad específica por ID
+    @swagger_auto_schema(
+        operation_description="Eliminar una entidad específica por ID",
+        responses={
+            204: openapi.Response(description="Entidad eliminada correctamente"),
+            404: openapi.Response(description="Entidad no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, id):
+        """
+        Delete a specific entity by ID
+        @param request: HTTP request
+        @param id: Entity ID
+        @return: JSON response
+        """
+
+        try:
+            # Buscar la entidad por ID
+            entity = Entity.objects.get(id=id)
+
+            # Eliminar la entidad
+            entity.delete()
+
+            # Respuesta de éxito sin contenido
+            return Response(
+                {"message": "Entity deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+
+        except Entity.DoesNotExist:
+            # Respuesta si la entidad no existe
+            return Response(
+                {"message": "Entity not found", "status": status.HTTP_404_NOT_FOUND},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except Exception as e:
+            # Respuesta en caso de error interno
+            return Response(
+                {
+                    "message": f"Error deleting entity: {str(e)}",
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

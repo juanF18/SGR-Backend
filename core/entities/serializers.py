@@ -7,7 +7,7 @@ from django.core import validators
 class EntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Entity
-        fields = "__all__"
+        exclude = ["created_at", "updated_at", "deleted_at"]
 
 
 class EntityValidator(forms.Form):
@@ -31,7 +31,8 @@ class EntityValidator(forms.Form):
         required=True,
         validators=[
             validators.RegexValidator(
-                regex=r"^\d{9,10}-\d{1}$",
+                regex=r"^\d{9,10}(-\d{1})?$",
+                message="El NIT debe tener entre 9 y 10 dígitos, con un guion opcional seguido de un dígito adicional.",
                 code="invalid_nit",
             )
         ],
@@ -52,7 +53,7 @@ class EntityValidator(forms.Form):
         required=True,
         validators=[
             validators.RegexValidator(
-                regex=r"^\d{10}$",
+                regex=r"^(\+?\d{1,3})?(\(?\d{2,3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}$",
                 code="invalid_phone",
             )
         ],
