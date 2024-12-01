@@ -32,7 +32,6 @@ DEBUG = os.environ.get("DEBUG", default=False)
 
 ALLOWED_HOSTS = ["*"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     ## Third party apps
+    "rest_framework_simplejwt",
     "rest_framework",
     "drf_yasg",
     "corsheaders",
@@ -161,7 +161,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "users.User"
+# AUTH_USER_MODEL = "users.User"
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -181,13 +181,13 @@ CORS_ALLOW_HEADERS = [
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
     "REFRESH_TOKEN_LIFETIME": timedelta(minutes=60),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": False,
     "ALGORITHM": "HS256",
-    "VERIFYING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": os.environ.get("SECRET_KEY"),
     "AUDIENCE": None,
     "ISSUER": None,
     "JWK_URL": None,
@@ -205,8 +205,23 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 }
 
+# REST Framework settings
+
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT Authentication
+    ],
+    # "DEFAULT_PERMISSION_CLASSES": DEFAULT_PERMISSION_CLASSES,
 }
+
+"""
+{
+  "name": "Juan Felipe",
+  "last_name": "Cortes",
+  "email": "juan.1701721757@ucaldas.edu.co",
+  "identification": "123123123",
+  "password": "123456789",
+  "role_id": "2a8d31ac-39ac-406d-aa84-e65752732ad1",
+  "entity_id": "19cec6ba-70aa-4a82-a920-efca1e60f9e5"
+}
+"""

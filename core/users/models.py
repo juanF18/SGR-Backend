@@ -1,47 +1,62 @@
-import uuid
 from django.db import models
-from core.roles.models import Role
-from core.entities.models import Entity
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+import uuid
+import os
+import hashlib
 
 
-# Create your models here.
-class CustomManager(models.Manager):
-    def _create_user(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError("The given email must be set")
-        email = self.model.normalize_username(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
+class User(models.Model):
+    # Campos principales
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField("Correo electrónico", unique=True)
+    name = models.CharField("Nombre", max_length=100, null=True, blank=True)
+    last_name = models.CharField("Apellido", max_length=100, null=True, blank=True)
+    identification = models.CharField("Identificación", max_length=50, unique=True)
+    password = models.CharField("Contraseña", max_length=256)
 
-    def create_user(self, email, password=None, **extra_fields):
-        return self._create_user(email, password, **extra_fields)
+    # Campos de estado
+    is_active = models.BooleanField(default=True)  # Activo o no
+    is_staff = models.BooleanField(default=False)  # Si es administrador
+    is_superuser = models.BooleanField(default=False)  # Si es superusuario
 
-
-class User(AbstractBaseUser, PermissionsMixin):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    name = models.CharField("name", max_length=100, null=True, blank=True)
-    last_name = models.CharField("last_name", max_length=100, null=True, blank=True)
-    email = models.EmailField(
-        "email", max_length=100, unique=True, null=True, blank=True
+    # Relaciones
+    role = models.ForeignKey(
+        "roles.Role", on_delete=models.SET_NULL, null=True, blank=True
     )
-    identification = models.CharField(
-        "identification", max_length=100, null=True, blank=True
-    )
-    password = models.CharField("password", max_length=100, null=True, blank=True)
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
     entity = models.ForeignKey(
-        Entity, on_delete=models.SET_NULL, null=True, blank=True
+        "entities.Entity", on_delete=models.SET_NULL, null=True, blank=True
     )
+
+    # Tiempos
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    objects = CustomManager()
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
 
     class Meta:
         db_table = "users"
         ordering = ["id"]
+
+    def __str__(self):
+        return self.email
+
+    def set_password(self, raw_password):
+        """Este método crea el hash de la contraseña"""
+        salt = os.urandom(32)  # 32 bytes salt
+        hashed_pw = hashlib.pbkdf2_hmac(
+            "sha256", raw_password.encode("utf-8"), salt, 100000
+        )
+        self.password = f"pbkdf2_sha256${salt.hex()}${hashed_pw.hex()}"
+        self.save()
+
+    def check_password(self, raw_password):
+        """Este método compara el hash con la contraseña ingresada"""
+        try:
+            algorithm, salt, hashed_pw = self.password.split("$")
+            salt = bytes.fromhex(salt)
+            stored_hashed_pw = bytes.fromhex(hashed_pw)
+            hashed_input_pw = hashlib.pbkdf2_hmac(
+                "sha256", raw_password.encode("utf-8"), salt, 100000
+            )
+            return hashed_input_pw == stored_hashed_pw
+        except Exception as e:
+            print("Error al verificar la contraseña", e)
+            return False
