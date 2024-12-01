@@ -1,8 +1,8 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 from core.roles.serializers import RoleSerializer
 from core.entities.serializers import EntitySerializer
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django import forms
 from django.core import validators
 
@@ -13,17 +13,19 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        exclude = ["created_at", "updated_at", "deleted_at"]
+        exclude = ["created_at", "updated_at", "deleted_at", "password"]
 
-    def validate_identification(self, email):
+    def validate_email(self, email):
+        """Valida que el email sea único"""
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email already exists")
+            raise serializers.ValidationError("El email ya existe")
         return email
 
     def to_internal_value(self, data):
+        """Ajusta los valores internos del usuario"""
         representation = super().to_internal_value(data)
         if data.get("role"):
-            representation["role_id"] = data.role.get("id")
+            representation["role_id"] = data["role"].get("id")
         else:
             representation["role_id"] = None
         if data.get("entity"):
@@ -32,18 +34,61 @@ class UserSerializer(serializers.ModelSerializer):
             representation["entity_id"] = None
         return representation
 
+    def create(self, validated_data):
+        """Crear un nuevo usuario con la contraseña cifrada"""
+        password = validated_data.pop("password", None)
+        user = User.objects.create(**validated_data)
+        if password:
+            user.set_password(
+                password
+            )  # Asegurarse de que la contraseña se guarde correctamente
+        return user
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token["role"] = user.role_id.name
-        return token
+
+class LoginUserSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+
+    # Campos adicionales que se devolverán en la respuesta
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+    role_name = serializers.CharField(read_only=True)
+    entity_name = serializers.CharField(read_only=True)
+
+    def validate(self, attrs):
+        """
+        Valida las credenciales de login (email y contraseña).
+        """
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("El usuario no existe")
+
+        # Verifica que la contraseña sea correcta
+        if not user.check_password(password):
+            raise serializers.ValidationError("Credenciales incorrectas (password)")
+
+        # Genera tokens de acceso
+        refresh = RefreshToken.for_user(user)
+        access_token = refresh.access_token
+
+        # Añadir información adicional en la respuesta
+        attrs["refresh"] = str(refresh)
+        attrs["access"] = str(access_token)
+        attrs["first_name"] = user.name
+        attrs["last_name"] = user.last_name
+        attrs["role_name"] = user.role.name if user.role else None
+        attrs["entity_name"] = user.entity.name if user.entity else None
+
+        return attrs
 
 
 class UserValidator(forms.Form):
     """
-    UserValidator is a form that validates the name, last name, and identification of a user.
+    Formulario de validación de los datos básicos del usuario.
     """
 
     name = forms.CharField(
