@@ -25,7 +25,7 @@ movement_request_body = openapi.Schema(
             description="Tipo de movimiento (ingreso, egreso, etc.)",
         ),
         "contract_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER,
+            type=openapi.TYPE_STRING,
             description="ID del contrato relacionado con el movimiento",
         ),
     },

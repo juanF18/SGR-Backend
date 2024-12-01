@@ -38,7 +38,7 @@ person_request_body = openapi.Schema(
             description="Total por el trabajo realizado",
         ),
         "rubro_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER,
+            type=openapi.TYPE_STRING,
             description="ID del rubro relacionado con la persona",
         ),
     },

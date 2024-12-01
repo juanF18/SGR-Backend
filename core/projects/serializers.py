@@ -2,12 +2,22 @@ from rest_framework import serializers
 from .models import Project
 from django import forms
 from django.core import validators
-
+from core.entities.serializers import EntitySerializer
 
 class ProjectSerializer(serializers.ModelSerializer):
+    entity = EntitySerializer(many=False)
+
     class Meta:
         model = Project
-        fields = "__all__"
+        exclude = ["created_at", "updated_at", "deleted_at"]    
+
+    def to_internal_value(self, data):
+        representation = super().to_internal_value(data)
+        if data.get("entity"):
+            representation["entity_id"] = data.entity.get("id")
+        else:
+            representation["entity_id"] = None
+        return representation
 
 
 class ProjectValidator(forms.Form):

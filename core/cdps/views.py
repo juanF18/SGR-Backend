@@ -33,7 +33,7 @@ cdps_request_body = openapi.Schema(
             type=openapi.TYPE_STRING, description="Documento asociado al CDP"
         ),
         "rubro_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID del Rubro asociado al CDP"
+            type=openapi.TYPE_STRING, description="ID del Rubro asociado al CDP"
         ),
     },
 )

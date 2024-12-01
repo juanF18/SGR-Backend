@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     path("contracts", views.ContractView.as_view(), name="contracts_view"),
     path(
-        "contracts/<int:id>/",
+        "contracts/<uuid:id>/",
         views.ContractDetailView.as_view(),
         name="contract_detail_view",
     ),

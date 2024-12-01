@@ -22,7 +22,7 @@ task_request_body = openapi.Schema(
             type=openapi.TYPE_STRING, description="Estado de la tarea"
         ),
         "activity_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID de la actividad asociada"
+            type=openapi.TYPE_STRING, description="ID de la actividad asociada"
         ),
     },
 )
