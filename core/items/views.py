@@ -32,7 +32,7 @@ item_request_body = openapi.Schema(
             description="Valor total del item",
         ),
         "rubro_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER,
+            type=openapi.TYPE_STRING,
             description="ID del rubro relacionado con el item",
         ),
     },

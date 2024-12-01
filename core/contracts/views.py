@@ -51,7 +51,7 @@ contract_request_body = openapi.Schema(
             type=openapi.TYPE_STRING, description="Observaciones del contrato"
         ),
         "cpds_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID del CDPS relacionado"
+            type=openapi.TYPE_STRING, description="ID del CDPS relacionado"
         ),
     },
 )

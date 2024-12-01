@@ -8,7 +8,7 @@ urlpatterns = [
         name="detailContracts_view",
     ),
     path(
-        "detailContracts/<int:id>/",
+        "detailContracts/<uuid:id>/",
         views.DetailContractDetailView.as_view(),
         name="detailContract_detail_view",
     ),

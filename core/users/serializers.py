@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User
 from core.roles.serializers import RoleSerializer
+from core.entities.serializers import EntitySerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django import forms
 from django.core import validators
@@ -8,6 +9,7 @@ from django.core import validators
 
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(many=False)
+    entity = EntitySerializer(many=False)
 
     class Meta:
         model = User
@@ -24,7 +26,10 @@ class UserSerializer(serializers.ModelSerializer):
             representation["role_id"] = data.role.get("id")
         else:
             representation["role_id"] = None
-        representation.pop("password")
+        if data.get("entity"):
+            representation["entity_id"] = data.entity.get("id")
+        else:
+            representation["entity_id"] = None
         return representation
 
 
