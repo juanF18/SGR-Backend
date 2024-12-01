@@ -21,7 +21,7 @@ counterpart_request_body = openapi.Schema(
             type=openapi.TYPE_NUMBER, description="Valor en efectivo"
         ),
         "rubro_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID del rubro relacionado"
+            type=openapi.TYPE_STRING, description="ID del rubro relacionado"
         ),
     },
 )

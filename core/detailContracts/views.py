@@ -28,10 +28,10 @@ detail_contract_request_body = openapi.Schema(
             type=openapi.TYPE_STRING, description="Estado del contrato"
         ),
         "task_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID de la tarea relacionada"
+            type=openapi.TYPE_STRING, description="ID de la tarea relacionada"
         ),
         "contract_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID del contrato relacionado"
+            type=openapi.TYPE_STRING, description="ID del contrato relacionado"
         ),
     },
 )

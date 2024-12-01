@@ -35,10 +35,10 @@ activity_request_body = openapi.Schema(
             type=openapi.TYPE_STRING, description="Estado de la actividad"
         ),
         "project_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID del proyecto relacionado"
+            type=openapi.TYPE_STRING, description="ID del proyecto relacionado"
         ),
         "rubro_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID del rubro relacionado"
+            type=openapi.TYPE_STRING, description="ID del rubro relacionado"
         ),
     },
 )

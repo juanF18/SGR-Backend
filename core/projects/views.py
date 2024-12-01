@@ -40,7 +40,7 @@ project_request_body = openapi.Schema(
             type=openapi.TYPE_STRING, description="URL del archivo de actividades"
         ),
         "entity_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER,
+            type=openapi.TYPE_STRING,
             description="ID de la entidad asociada al proyecto",
         ),
     },

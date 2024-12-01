@@ -17,7 +17,7 @@ rubro_request_body = openapi.Schema(
         ),
         "value_sgr": openapi.Schema(type=openapi.TYPE_NUMBER, description="Valor SGR"),
         "project_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER, description="ID del proyecto asociado"
+            type=openapi.TYPE_STRING, description="ID del proyecto asociado"
         ),
     },
 )

@@ -15,7 +15,7 @@ comment_request_body = openapi.Schema(
             type=openapi.TYPE_STRING, description="Texto del comentario"
         ),
         "user_id": openapi.Schema(
-            type=openapi.TYPE_INTEGER,
+            type=openapi.TYPE_STRING,
             description="ID del usuario que realiza el comentario",
         ),
     },
