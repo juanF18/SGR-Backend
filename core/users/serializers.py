@@ -13,7 +13,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        exclude = ["created_at", "updated_at", "deleted_at", "password"]
+        exclude = [
+            "created_at",
+            "updated_at",
+            "deleted_at",
+            "password",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+        ]
 
     def validate_email(self, email):
         """Valida que el email sea único"""
