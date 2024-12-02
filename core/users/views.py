@@ -200,6 +200,76 @@ class UserDetailView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @swagger_auto_schema(
+        operation_description="Actualizar un usuario específico por ID",
+        request_body=user_request_body,
+        responses={
+            200: openapi.Response(
+                description="Usuario actualizado correctamente", schema=UserSerializer
+            ),
+            400: openapi.Response(description="Datos de usuario inválidos"),
+            404: openapi.Response(description="Usuario no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+        """
+        Actualizar un usuario específico por ID
+        """
+        try:
+            # Obtener el usuario que se desea actualizar
+            user = User.objects.get(id=pk)
+
+            # Validar los datos del usuario
+            data = request.data
+            user_validator = UserValidator(data)
+            if not user_validator.is_valid():
+                response = {
+                    "message": "Datos inválidos",
+                    "errors": user_validator.errors,
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+            # Si se proporciona un nuevo rol, obtenerlo
+            if data.get("role_id"):
+                role = Role.objects.get(id=data["role_id"])
+                user.role = role
+
+            # Si se proporciona una nueva entidad, obtenerla
+            if data.get("entity_id"):
+                entity = Entity.objects.get(id=data["entity_id"])
+                user.entity = entity
+
+            # Actualizar los campos del usuario
+            user.name = data.get("name", user.name)
+            user.last_name = data.get("last_name", user.last_name)
+            user.email = data.get("email", user.email)
+            user.identification = data.get("identification", user.identification)
+
+            # Si se proporciona una nueva contraseña, actualizarla
+            if data.get("password"):
+                user.set_password(data["password"])
+
+            # Guardar los cambios
+            user.save()
+
+            # Serializar el usuario actualizado
+            user_serializer = UserSerializer(user, many=False)
+
+            return Response(user_serializer.data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            response = {
+                "message": "Usuario no encontrado",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error al actualizar el usuario: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # Definir el cuerpo de la solicitud para el login
 login_request_body = openapi.Schema(
