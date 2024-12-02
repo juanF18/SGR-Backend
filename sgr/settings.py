@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
+import dj_database_url
 
 load_dotenv()
 
@@ -29,8 +30,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", default=False)
+APP_NAME = os.environ.get("FLY_APP_NAME")
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [f"{APP_NAME}.fly.dev", "*"]
 
 # Application definition
 
@@ -103,16 +105,13 @@ WSGI_APPLICATION = "sgr.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+DATABASES_URL = f'postgres://{os.environ.get("DB_USER")}:{os.environ.get("DB_PASSWORD")}@{os.environ.get("DB_HOST")}:{os.environ.get("DB_PORT")}/{os.environ.get("DB_NAME")}'
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.environ.get("DB_NAME"),
-        "USER": os.environ.get("DB_USER"),
-        "PASSWORD": os.environ.get("DB_PASSWORD"),
-        "HOST": os.environ.get("DB_HOST"),
-        "PORT": os.environ.get("DB_PORT"),
-    }
+    "default": dj_database_url.config(default=DATABASES_URL)
 }
+
+print(DATABASES)
 
 
 # Password validation
@@ -213,15 +212,3 @@ REST_FRAMEWORK = {
     ],
     # "DEFAULT_PERMISSION_CLASSES": DEFAULT_PERMISSION_CLASSES,
 }
-
-"""
-{
-  "name": "Juan Felipe",
-  "last_name": "Cortes",
-  "email": "juan.1701721757@ucaldas.edu.co",
-  "identification": "123123123",
-  "password": "123456789",
-  "role_id": "2a8d31ac-39ac-406d-aa84-e65752732ad1",
-  "entity_id": "19cec6ba-70aa-4a82-a920-efca1e60f9e5"
-}
-"""
