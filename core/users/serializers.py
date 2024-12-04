@@ -57,12 +57,6 @@ class LoginUserSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, required=True)
 
-    # Campos adicionales que se devolverán en la respuesta
-    first_name = serializers.CharField(read_only=True)
-    last_name = serializers.CharField(read_only=True)
-    role_name = serializers.CharField(read_only=True)
-    entity_name = serializers.CharField(read_only=True)
-
     def validate(self, attrs):
         """
         Valida las credenciales de login (email y contraseña).
@@ -83,15 +77,17 @@ class LoginUserSerializer(serializers.Serializer):
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
 
-        # Añadir información adicional en la respuesta
-        attrs["refresh"] = str(refresh)
-        attrs["access"] = str(access_token)
-        attrs["first_name"] = user.name
-        attrs["last_name"] = user.last_name
-        attrs["role_name"] = user.role.name if user.role else None
-        attrs["entity_name"] = user.entity.name if user.entity else None
+        user_data = {
+            "first_name": user.name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "role_name": user.role.name if user.role else None,
+            "entity_name": user.entity.name if user.entity else None,
+            "refresh": str(refresh),
+            "access": str(access_token),
+        }
 
-        return attrs
+        return user_data
 
 
 class UserValidator(forms.Form):
