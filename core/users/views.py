@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework import status
 from .serializers import UserSerializer, UserValidator, LoginUserSerializer
 from .models import User
@@ -271,6 +272,7 @@ class UserDetailView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 # Definir el cuerpo de la solicitud para el login
 login_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -289,6 +291,8 @@ class LoginUserView(APIView):
     """
     Vista para manejar el login de usuario y la generación de tokens.
     """
+
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         operation_description="Iniciar sesión y obtener un token",
