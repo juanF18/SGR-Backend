@@ -21,6 +21,11 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Directorio donde se almacenan los archivos cargados por los usuarios
+MEDIA_URL = "/media/"  # URL base para acceder a los archivos media
+MEDIA_ROOT = os.path.join(
+    BASE_DIR, "media"
+)  # Ruta física en el servidor donde se almacenan los archivos media
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
