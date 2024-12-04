@@ -68,6 +68,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "core.middleware.log_request_headers.LogRequestHeadersMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -77,6 +78,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 
 ROOT_URLCONF = "sgr.urls"
 
@@ -107,9 +109,7 @@ WSGI_APPLICATION = "sgr.wsgi.application"
 
 DATABASES_URL = f'postgres://{os.environ.get("DB_USER")}:{os.environ.get("DB_PASSWORD")}@{os.environ.get("DB_HOST")}:{os.environ.get("DB_PORT")}/{os.environ.get("DB_NAME")}'
 
-DATABASES = {
-    "default": dj_database_url.config(default=DATABASES_URL)
-}
+DATABASES = {"default": dj_database_url.config(default=DATABASES_URL)}
 
 print(DATABASES)
 
@@ -160,7 +160,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "users.User"
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -196,11 +196,11 @@ SIMPLE_JWT = {
     "AUTH_COOKIE": "access_token",
     "REFRESH_COOKIE": "refresh_token",
     "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
+    "USER_ID_CLAIM": "id",
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
-    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+    "TOKEN_USER_CLASS": "core.users.models.User",
     "JTI_CLAIM": "jti",
 }
 

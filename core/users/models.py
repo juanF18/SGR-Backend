@@ -1,4 +1,6 @@
 from django.db import models
+from core.roles.models import Role
+from core.entities.models import Entity
 import uuid
 import os
 import hashlib
@@ -19,17 +21,16 @@ class User(models.Model):
     is_superuser = models.BooleanField(default=False)  # Si es superusuario
 
     # Relaciones
-    role = models.ForeignKey(
-        "roles.Role", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    entity = models.ForeignKey(
-        "entities.Entity", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    entity = models.ForeignKey(Entity, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Tiempos
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["identification", "password"]
 
     class Meta:
         db_table = "users"
@@ -60,3 +61,15 @@ class User(models.Model):
         except Exception as e:
             print("Error al verificar la contraseña", e)
             return False
+
+    # Métodos que Django espera para autenticación
+    @property
+    def is_authenticated(self):
+        return True if self.is_active else False
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_username(self):
+        return self.email

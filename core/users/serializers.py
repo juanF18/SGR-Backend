@@ -57,6 +57,11 @@ class LoginUserSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, required=True)
 
+    first_name = serializers.CharField(read_only=True)
+    last_name = serializers.CharField(read_only=True)
+    role_name = serializers.CharField(read_only=True)
+    entity_name = serializers.CharField(read_only=True)
+
     def validate(self, attrs):
         """
         Valida las credenciales de login (email y contraseña).
@@ -66,6 +71,7 @@ class LoginUserSerializer(serializers.Serializer):
 
         try:
             user = User.objects.get(email=email)
+            print(f"User found: {user.id}")
         except User.DoesNotExist:
             raise serializers.ValidationError("El usuario no existe")
 
@@ -74,8 +80,11 @@ class LoginUserSerializer(serializers.Serializer):
             raise serializers.ValidationError("Credenciales incorrectas (password)")
 
         # Genera tokens de acceso
+        print(f"Generating tokens for user ID: {user.id}")
         refresh = RefreshToken.for_user(user)
         access_token = refresh.access_token
+
+        print(f"Generated Access Token: {access_token}")
 
         user_data = {
             "first_name": user.name,
