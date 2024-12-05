@@ -200,3 +200,106 @@ class ContractDetailView(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar un contrato específico por ID",
+        request_body=contract_request_body,
+        responses={
+            200: openapi.Response(
+                description="Contrato actualizado correctamente", schema=ContractSerializer
+            ),
+            400: openapi.Response(description="Contrato no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+            
+            """
+            Update a specific contract by ID
+            @param request: HTTP request
+            @param pk: Contract ID
+            @return: JSON response
+            """
+    
+            try:
+                contract = Contract.objects.get(id=pk)
+                
+                data = request.data
+
+                if data.get("cpds_id"):
+                    cpds = Cdps.objects.get(id=data["cpds_id"])
+                    contract.cpds_id = cpds
+
+                contract.contract_number = data.get("contract_number", contract.contract_number)
+                contract.contracting_nit = data.get("contracting_nit", contract.contracting_nit)
+                contract.contracted_nit = data.get("contracted_nit", contract.contracted_nit)
+                contract.contracting_name = data.get("contracting_name", contract.contracting_name)
+                contract.start_date = data.get("start_date", contract.start_date)
+                contract.end_date = data.get("end_date", contract.end_date)
+                contract.contract_info = data.get("contract_info", contract.contract_info)
+                contract.amount = data.get("amount", contract.amount)
+                contract.supervisor_name = data.get("supervisor_name", contract.supervisor_name)
+                contract.supervisor_identification = data.get("supervisor_identification", contract.supervisor_identification)
+                contract.contract_url = data.get("contract_url", contract.contract_url)
+                contract.observations = data.get("observations", contract.observations)
+                contract.save()
+
+                contract_serializer = ContractSerializer(contract, many=False)
+
+                return Response(contract_serializer.data, status=status.HTTP_200_OK)
+
+            except Contract.DoesNotExist:
+                response = {
+                    "message": "El contrato no existe",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            except Cdps.DoesNotExist:
+                response = {
+                    "message": "El CDP no existe",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                response = {
+                    "message": f"Error actualizando contrato: {str(e)}",
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
+                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+    @swagger_auto_schema(
+        operation_description="Eliminar un contrato específico por ID",
+        responses={
+            200: openapi.Response(
+                description="Contrato eliminado correctamente",
+            ),
+            400: openapi.Response(description="Contrato no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+        
+        """
+        Delete a specific contract by ID
+        @param request: HTTP request
+        @param pk: Contract ID
+        @return: JSON response
+        """
+        
+        try:
+            contract = Contract.objects.get(id=pk)
+            contract.delete()
+            
+            return Response(status=status.HTTP_200_OK)
+        except Contract.DoesNotExist:
+            response = {
+                "message": "El contrato no existe",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error eliminando contrato: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

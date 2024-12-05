@@ -41,7 +41,6 @@ travel_request_body = openapi.Schema(
 
 
 class TravelView(APIView):
-
     """
     Class to handle HTTP requests related to travels
 
@@ -62,7 +61,6 @@ class TravelView(APIView):
         },
     )
     def get(self, request):
-
         """
         Get all travels
         @param request: HTTP request
@@ -76,7 +74,7 @@ class TravelView(APIView):
             return Response(travel_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
-                "message": f"Error retrieving travels: {str(e)}",
+                "message": f"Error obteniendo los viajes: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -94,7 +92,6 @@ class TravelView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new travel
         @param request: HTTP request
@@ -119,26 +116,26 @@ class TravelView(APIView):
             return Response(travel_serializer.data, status=status.HTTP_201_CREATED)
         except Rubro.DoesNotExist:
             response = {
-                "message": "Rubro does not exist",
+                "message": "Rubro no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error creating travel: {str(e)}",
+                "message": f"Error creando el viaje: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TravelDetailView(APIView):
-
     """
     Class to handle HTTP requests related to a specific travel
 
     @methods:
     - get: Get a specific travel by ID
     """
+
     # Documentar el método GET para obtener un viaje específico por ID
     @swagger_auto_schema(
         operation_description="Obtener un viaje específico por ID",
@@ -151,7 +148,6 @@ class TravelDetailView(APIView):
         },
     )
     def get(self, request, pk):
-
         """
         Get a specific travel by ID
         @param request: HTTP request
@@ -165,13 +161,107 @@ class TravelDetailView(APIView):
             return Response(travel_serializer.data, status=status.HTTP_200_OK)
         except Travel.DoesNotExist:
             response = {
-                "message": "Travel does not exist",
+                "message": "Viaje no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error retrieving travel: {str(e)}",
+                "message": f"Error obteniendo el viaje: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Eliminar un viaje específico por ID",
+        responses={
+            200: openapi.Response(description="Viaje eliminado correctamente"),
+            400: openapi.Response(description="Viaje no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+        """
+        Delete a specific travel by ID
+        @param request: HTTP request
+        @param pk: Travel ID
+        @return: JSON response
+        """
+
+        try:
+            travel = Travel.objects.get(id=pk)
+            travel.delete()
+
+            return Response(status=status.HTTP_200_OK)
+        except Travel.DoesNotExist:
+            response = {
+                "message": "Viaje no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error eliminando el viaje: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar un viaje específico por ID",
+        request_body=travel_request_body,
+        responses={
+            200: openapi.Response(
+                description="Viaje actualizado correctamente", schema=TravelSerializer
+            ),
+            400: openapi.Response(description="Viaje no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+        """
+        Update a specific travel by ID
+        @param request: HTTP request
+        @param pk: Travel ID
+        @return: JSON response
+        """
+
+        try:
+            travel = Travel.objects.get(id=pk)
+
+            data = request.data
+
+            if data.get("rubro_id"):
+                rubro = Rubro.objects.get(id=data["rubro_id"])
+                travel.rubro_id = rubro
+
+            travel.origin = data.get("origin", travel.origin)
+            travel.destination = data.get("destination", travel.destination)
+            travel.transport = data.get("transport", travel.transport)
+            travel.quantity = data.get("quantity", travel.quantity)
+            travel.cant_persons = data.get("cant_persons", travel.cant_persons)
+            travel.cant_days = data.get("cant_days", travel.cant_days)
+            travel.total = data.get("total", travel.total)
+
+            travel.save()
+
+            travel_serializer = TravelSerializer(travel, many=False)
+
+            return Response(travel_serializer.data, status=status.HTTP_200_OK)
+        except Travel.DoesNotExist:
+            response = {
+                "message": "Viaje no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error actualizando el viaje: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

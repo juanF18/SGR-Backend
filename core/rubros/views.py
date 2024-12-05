@@ -24,7 +24,6 @@ rubro_request_body = openapi.Schema(
 
 
 class RubroView(APIView):
-
     """
     Class to handle HTTP requests related to rubros
 
@@ -45,7 +44,6 @@ class RubroView(APIView):
         },
     )
     def get(self, request):
-
         """
         Get all rubros
         @param request: HTTP request
@@ -59,7 +57,7 @@ class RubroView(APIView):
             return Response(rubro_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
-                "message": f"Error retrieving rubros: {str(e)}",
+                "message": f"Error obteniendo los rubros: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -79,7 +77,6 @@ class RubroView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new rubro
         @param request: HTTP request
@@ -99,20 +96,19 @@ class RubroView(APIView):
             return Response(rubro_serializer.data, status=status.HTTP_201_CREATED)
         except Project.DoesNotExist:
             response = {
-                "message": "Project does not exist",
+                "message": "Proyecto no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error creating rubro: {str(e)}",
+                "message": f"Error creando el rubro: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class RubroDetailView(APIView):
-
     """
     Class to handle HTTP requests related to a specific rubro
 
@@ -132,7 +128,6 @@ class RubroDetailView(APIView):
         },
     )
     def get(self, request, pk):
-
         """
         Get a specific rubro by ID
         @param request: HTTP request
@@ -147,13 +142,102 @@ class RubroDetailView(APIView):
             return Response(rubro_serializer.data, status=status.HTTP_200_OK)
         except Rubro.DoesNotExist:
             response = {
-                "message": "Rubro does not exist",
+                "message": "Rubro no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
                 "message": f"Error retrieving rubro: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Eliminar un rubro específico por ID",
+        responses={
+            200: openapi.Response(
+                description="Rubro eliminado correctamente", schema=RubroSerializer
+            ),
+            400: openapi.Response(description="Rubro no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+        """
+        Delete a specific rubro by ID
+        @param request: HTTP request
+        @param pk: Rubro ID
+        @return: JSON response
+        """
+        try:
+            rubro = Rubro.objects.get(id=pk)
+            rubro.delete()
+
+            return Response(status=status.HTTP_200_OK)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error eliminando el rubro: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar un rubro específico por ID",
+        request_body=rubro_request_body,
+        responses={
+            200: openapi.Response(
+                description="Rubro actualizado correctamente", schema=RubroSerializer
+            ),
+            400: openapi.Response(description="Rubro no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+        """
+        Update a specific rubro by ID
+        @param request: HTTP request
+        @param pk: Rubro ID
+        @return: JSON response
+        """
+
+        try:
+            rubro = Rubro.objects.get(id=pk)
+
+            data = request.data
+
+            if data.get("project_id"):
+                project = Project.objects.get(id=data["project_id"])
+                rubro.project_id = project
+
+            rubro.descripcion = data.get("descripcion", rubro.descripcion)
+            rubro.value_sgr = data.get("value_sgr", rubro.value_sgr)
+            rubro.save()
+
+            rubro_serializer = RubroSerializer(rubro, many=False)
+
+            return Response(rubro_serializer.data, status=status.HTTP_200_OK)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Project.DoesNotExist:
+            response = {
+                "message": "Proyecto no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error actualizando el rubro: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
