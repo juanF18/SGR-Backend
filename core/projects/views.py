@@ -5,7 +5,12 @@ from rest_framework.views import APIView
 from django.db import transaction
 from .models import Project
 from .serializers import ProjectSerializer, ProjectValidator, ProjectFileSerializer
-from .utils import BudgetProcessor, InvalidFileFormatError, DatabaseError
+from .utils import (
+    BudgetProcessor,
+    ActivitiesProcessor,
+    InvalidFileFormatError,
+    DatabaseError,
+)
 from core.entities.models import Entity
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -174,6 +179,10 @@ class ProjectView(APIView):
                 if file_budget:
                     processor = BudgetProcessor(file_budget, project)
                     processor.process()
+
+                if file_activities:
+                    activities_processor = ActivitiesProcessor(file_activities, project)
+                    activities_processor.process()
 
                 # Serializar la respuesta
                 project_serializer = ProjectSerializer(project, many=False)
