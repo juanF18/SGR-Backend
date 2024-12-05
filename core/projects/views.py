@@ -2,8 +2,10 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db import transaction
 from .models import Project
 from .serializers import ProjectSerializer, ProjectValidator, ProjectFileSerializer
+from .utils import BudgetProcessor, InvalidFileFormatError, DatabaseError
 from core.entities.models import Entity
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -150,28 +152,41 @@ class ProjectView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Crear el proyecto
-            project = Project.objects.create(
-                name=data["name"],
-                description=data["description"],
-                value=data["value"],
-                start_date=data["start_date"],
-                end_date=data["end_date"],
-                entity=entity,
+            with transaction.atomic():
+                # Crear el proyecto
+                project = Project.objects.create(
+                    name=data["name"],
+                    description=data["description"],
+                    value=data["value"],
+                    start_date=data["start_date"],
+                    end_date=data["end_date"],
+                    entity=entity,
+                )
+
+                # Guardar los archivos, si fueron enviados
+                if file_budget:
+                    project.file_budget = file_budget
+                if file_activities:
+                    project.file_activities = file_activities
+                project.save()
+
+                # Procesar el archivo de presupuestos
+                if file_budget:
+                    processor = BudgetProcessor(file_budget, project)
+                    processor.process()
+
+                # Serializar la respuesta
+                project_serializer = ProjectSerializer(project, many=False)
+                return Response(project_serializer.data, status=status.HTTP_201_CREATED)
+
+        except InvalidFileFormatError as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except DatabaseError as e:
+            return Response(
+                {"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-            # Guardar los archivos, si fueron enviados
-            if file_budget:
-                project.file_budget = file_budget
-            if file_activities:
-                project.file_activities = file_activities
-            project.save()
-
-            # Serializar la respuesta
-            project_serializer = ProjectSerializer(project, many=False)
-            return Response(project_serializer.data, status=status.HTTP_201_CREATED)
-
         except Exception as e:
+            # Cualquier otro error inesperado
             response = {
                 "message": f"Error creating project: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
