@@ -74,7 +74,7 @@ class CdpsView(APIView):
             return Response(cdps_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
-                "message": f"Error retrieving cdps: {str(e)}",
+                "message": f"Error al obtener los cdps: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -119,7 +119,7 @@ class CdpsView(APIView):
             return Response(cdps_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             response = {
-                "message": f"Error creating cdps: {str(e)}",
+                "message": f"Error al crear el cdp: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -132,6 +132,8 @@ class CdpsDetailView(APIView):
 
     @methods:
     - get: Get CDP details
+    - put: Update a specific CDP
+    - delete: Delete a specific CDP
     """
 
     # Documentar el método GET para obtener el detalle de un CDP
@@ -161,13 +163,113 @@ class CdpsDetailView(APIView):
             return Response(cdps_serializer.data, status=status.HTTP_200_OK)
         except Cdps.DoesNotExist:
             response = {
-                "message": "Cdps does not exist",
+                "message": "Cdp no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error retrieving cdps: {str(e)}",
+                "message": f"Error al obtener el cdp: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar un CDP específico por ID",
+        request_body=cdps_request_body,
+        responses={
+            200: openapi.Response(
+                description="CDP actualizado correctamente", schema=CdpsSerializer
+            ),
+            400: openapi.Response(description="CDP no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+
+        """
+        Update a specific CDP by ID
+        @param request: HTTP request
+        @param id: CDP ID
+        @return: JSON response
+        """
+
+        try:
+            cdp = Cdps.objects.get(id=pk)
+
+            data = request.data
+
+            if data.get("rubro_id"):
+                rubro = Rubro.objects.get(id=data["rubro_id"])
+                cdp.rubro_id = rubro
+
+            cdp.number = data.get("number", cdp.number)
+            cdp.expedition_date = data.get("expedition_date", cdp.expedition_date)
+            cdp.amount = data.get("amount", cdp.amount)
+            cdp.description = data.get("description", cdp.description)
+            cdp.is_generated = data.get("is_generated", cdp.is_generated)
+            cdp.is_canceled = data.get("is_canceled", cdp.is_canceled)
+            cdp.document = data.get("document", cdp.document)
+
+            cdp.save()
+            
+            cdps_serializer = CdpsSerializer(cdp, many=False)            
+
+            return Response(cdps_serializer.data, status=status.HTTP_200_OK)
+        except Cdps.DoesNotExist:
+            response = {
+                "message": "Cdp no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error al actualizar cdp: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Eliminar un CDP específico por ID",
+        responses={
+            200: openapi.Response(description="CDP eliminado correctamente"),
+            400: openapi.Response(description="CDP no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+
+        """
+        Delete a specific CDP by ID
+        @param request: HTTP request
+        @param id: CDP ID
+        @return: JSON response
+        """
+
+        try:
+            cdp = Cdps.objects.get(id=pk)
+            cdp.delete()
+
+            response = {
+                "message": "Cdps eliminado correctamente",
+                "status": status.HTTP_200_OK,
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Cdps.DoesNotExist:
+            response = {
+                "message": "Cdps no existe",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error al eliminar cdp: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

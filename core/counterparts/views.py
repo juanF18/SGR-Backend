@@ -28,7 +28,6 @@ counterpart_request_body = openapi.Schema(
 
 
 class CounterpartView(APIView):
-
     """
     Class to handle HTTP requests related to counterparts
 
@@ -49,7 +48,6 @@ class CounterpartView(APIView):
         },
     )
     def get(self, request):
-
         """
         Get all counterparts
         @param request: HTTP request
@@ -59,11 +57,11 @@ class CounterpartView(APIView):
         try:
             data = Counterpart.objects.all()
             counterpart_serializer = CounterpartSerializer(data, many=True)
-        
+
             return Response(counterpart_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
-                "message": f"Error retrieving counterparts: {str(e)}",
+                "message": f"Error obteniendo las contrapartidas: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -82,7 +80,6 @@ class CounterpartView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new counterpart
         @param request: HTTP request
@@ -103,20 +100,19 @@ class CounterpartView(APIView):
             return Response(counterpart_serializer.data, status=status.HTTP_201_CREATED)
         except Rubro.DoesNotExist:
             response = {
-                "message": "Rubro does not exist",
+                "message": "Rubro no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error creating counterpart: {str(e)}",
+                "message": f"Error creando la contrapartida: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CounterpartDetailView(APIView):
-
     """
     Class to handle HTTP requests related to a single counterpart
 
@@ -137,7 +133,6 @@ class CounterpartDetailView(APIView):
         },
     )
     def get(self, request, id):
-
         """
         Get a counterpart by ID
         @param request: HTTP request
@@ -152,13 +147,109 @@ class CounterpartDetailView(APIView):
             return Response(counterpart_serializer.data, status=status.HTTP_200_OK)
         except Counterpart.DoesNotExist:
             response = {
-                "message": "Counterpart does not exist",
+                "message": "La contrapartida no existe",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error retrieving counterpart: {str(e)}",
+                "message": f"Error obteniendo la contrapartida: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar una contrapartida específica por ID",
+        request_body=counterpart_request_body,
+        responses={
+            200: openapi.Response(
+                description="contrapartida actualizada correctamente",
+                schema=CounterpartSerializer,
+            ),
+            400: openapi.Response(description="contrapartida no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+        """
+        Update a counterpart
+        @param request: HTTP request
+        @param pk: Counterpart ID
+        @return: JSON response
+        """
+
+        try:
+            counterpart = Counterpart.objects.get(id=pk)
+
+            data = request.data
+
+            if data.get("rubro_id"):
+                rubro = Rubro.objects.get(id=data["rubro_id"])
+                counterpart.rubro = rubro
+
+            counterpart.name = data.get("name", counterpart.name)
+            counterpart.value_species = data.get(
+                "value_species", counterpart.value_species
+            )
+            counterpart.value_chash = data.get("value_chash", counterpart.value_chash)
+
+            counterpart.save()
+
+            counterpart_serializer = CounterpartSerializer(counterpart, many=False)
+
+            return Response(counterpart_serializer.data, status=status.HTTP_200_OK)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Counterpart.DoesNotExist:
+            response = {
+                "message": "Contrapartida no encontrada",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error actualizando contrapartida: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Eliminar una contrapartida específica por ID",
+        responses={
+            200: openapi.Response(
+                description="Contrapartida eliminada correctamente",
+                schema=CounterpartSerializer,
+            ),
+            400: openapi.Response(description="Contrapartida no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+        """
+        Delete a counterpart
+        @param request: HTTP request
+        @param pk: Counterpart ID
+        @return: JSON response
+        """
+
+        try:
+            counterpart = Counterpart.objects.get(id=pk)
+            counterpart.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Counterpart.DoesNotExist:
+            response = {
+                "message": "Contrapartida no encontrada",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error eliminando la contrapartida: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
