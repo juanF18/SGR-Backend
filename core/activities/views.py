@@ -21,16 +21,6 @@ activity_request_body = openapi.Schema(
         "type": openapi.Schema(
             type=openapi.TYPE_STRING, description="Tipo de actividad"
         ),
-        "start_date": openapi.Schema(
-            type=openapi.TYPE_STRING,
-            format=openapi.FORMAT_DATE,
-            description="Fecha de inicio de la actividad",
-        ),
-        "end_date": openapi.Schema(
-            type=openapi.TYPE_STRING,
-            format=openapi.FORMAT_DATE,
-            description="Fecha de fin de la actividad",
-        ),
         "state": openapi.Schema(
             type=openapi.TYPE_STRING, description="Estado de la actividad"
         ),
@@ -112,8 +102,6 @@ class ActivityView(APIView):
                 name=data["name"],
                 description=data["description"],
                 type=data["type"],
-                start_date=data["start_date"],
-                end_date=data["end_date"],
                 state=data["state"],
                 project_id=project,
                 rubro_id=rubro,

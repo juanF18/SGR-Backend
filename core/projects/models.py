@@ -13,7 +13,7 @@ class Project(models.Model):
     )
     name = models.CharField("name", max_length=100, blank=True, null=True)
     description = models.TextField("description", blank=True, null=True)
-    value = models.DecimalField("value", max_digits=10, decimal_places=2, default=0)
+    value = models.DecimalField("value", max_digits=15, decimal_places=1, default=0)
     start_date = models.DateField("start_date", null=True, default=timezone.now)
     end_date = models.DateField("end_date", null=True, default=timezone.now)
     file_budget = models.FileField(

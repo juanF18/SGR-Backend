@@ -13,7 +13,7 @@ class Rubro(models.Model):
         "value_sgr", max_digits=15, decimal_places=1, default=0
     )
     project = models.ForeignKey(
-        Project, on_delete=models.SET_NULL, blank=True, null=True
+        Project, on_delete=models.CASCADE, blank=True, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
