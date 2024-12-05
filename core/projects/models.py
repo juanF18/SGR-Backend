@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import FileExtensionValidator
 from core.entities.models import Entity
+from .helpers import RenameFileWithProjectID
 
 
 # Create your models here.
@@ -17,13 +18,13 @@ class Project(models.Model):
     end_date = models.DateField("end_date", null=True, default=timezone.now)
     file_budget = models.FileField(
         "file_budget",
-        upload_to="projects/budgets/",
+        upload_to=RenameFileWithProjectID("budgets"),
         null=True,
         validators=[FileExtensionValidator(allowed_extensions=["xlsx"])],
     )
     file_activities = models.FileField(
         "file_activities",
-        upload_to="projects/activities/",
+        upload_to=RenameFileWithProjectID("activities"),
         null=True,
         validators=[FileExtensionValidator(allowed_extensions=["xlsx"])],
     )

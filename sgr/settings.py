@@ -116,8 +116,6 @@ DATABASES_URL = f'postgres://{os.environ.get("DB_USER")}:{os.environ.get("DB_PAS
 
 DATABASES = {"default": dj_database_url.config(default=DATABASES_URL)}
 
-print(DATABASES)
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -213,7 +211,7 @@ SIMPLE_JWT = {
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT Authentication
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     # "DEFAULT_PERMISSION_CLASSES": DEFAULT_PERMISSION_CLASSES,
 }
