@@ -1,16 +1,16 @@
 from django.urls import path
-from . import views
+from .views import ActivityByProjectView, ActivityDetailView, ActivityView
 
 urlpatterns = [
-    path("activities", views.ActivityView.as_view(), name="activities_view"),
+    path("activities", ActivityView.as_view(), name="activities_view"),
     path(
         "activities/<uuid:id>",
-        views.ActivityDetailView.as_view(),
+        ActivityDetailView.as_view(),
         name="activity_detail_view",
     ),
     path(
         "activities/<uuid:project_id>",
-        views.ActivityByProjectView(),
+        ActivityByProjectView.as_view(),
         name="activities_by_project_view",
     ),
 ]
