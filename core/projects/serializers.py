@@ -106,8 +106,8 @@ class ProjectValidator(forms.Form):
     )
 
     value = forms.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+        max_digits=15,
+        decimal_places=1,
         required=True,
         validators=[
             validators.MinValueValidator(0),
