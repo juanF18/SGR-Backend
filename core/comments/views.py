@@ -59,7 +59,7 @@ class CommentView(APIView):
             user = User.objects.get(id=data.get("user_id"))
             if not comment_text:
                 response = {
-                    "message": "comment_text is required",
+                    "message": "El campo de texto del comentario es requerido",
                     "status": status.HTTP_400_BAD_REQUEST,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -72,13 +72,13 @@ class CommentView(APIView):
             return Response(comment.serializer.data, status=status.HTTP_201_CREATED)
         except User.DoesNotExist:
             response = {
-                "message": "User not found",
+                "message": "Usuario no encontrado",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             response = {
-                "message": f"Error creating comment: {str(e)}",
+                "message": f"Error creando el comentario: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -121,13 +121,13 @@ class CommentDetailView(APIView):
             return Response(comment.serializer.data, status=status.HTTP_200_OK)
         except Comment.DoesNotExist:
             response = {
-                "message": "Comment not found",
+                "message": "Comentario no encontrado",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             response = {
-                "message": f"Error retrieving comment: {str(e)}",
+                "message": f"Error recuperando el comentario: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -172,7 +172,7 @@ class CommentUserView(APIView):
             return Response(comments.serializer.data, status=status.HTTP_200_OK)
         except Comment.DoesNotExist:
             response = {
-                "message": "Comments not found for this user",
+                "message": "Comentarios no encontrados para este usuario",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
@@ -182,3 +182,5 @@ class CommentUserView(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+

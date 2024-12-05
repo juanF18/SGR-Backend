@@ -68,7 +68,7 @@ class EntityView(APIView):
             return Response(entity_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
-                "message": f"Error retrieving entities: {str(e)}",
+                "message": f"Error obteniendo las entidades: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -98,7 +98,7 @@ class EntityView(APIView):
             entity_validator = EntityValidator(data)
             if not entity_validator.is_valid():
                 response = {
-                    "message": "Invalid data",
+                    "message": "Información inválida",
                     "errors": entity_validator.errors,
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -115,7 +115,7 @@ class EntityView(APIView):
             return Response(entity_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             response = {
-                "message": f"Error creating entity: {str(e)}",
+                "message": f"Error creando la entidad: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -155,13 +155,13 @@ class EntityDetailView(APIView):
             return Response(entity_serializer.data, status=status.HTTP_200_OK)
         except Entity.DoesNotExist:
             response = {
-                "message": "Entity not found",
+                "message": "Entidad no encontrada",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             response = {
-                "message": f"Error retrieving entity: {str(e)}",
+                "message": f"Error obteniendo la entidad: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -200,7 +200,7 @@ class EntityDetailView(APIView):
             return Response(entity_serializer.data, status=status.HTTP_200_OK)
         except Entity.DoesNotExist:
             response = {
-                "message": "Entity not found",
+                "message": "Entidad no encontrada",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
@@ -245,7 +245,7 @@ class EntityDetailView(APIView):
 
             # Respuesta de éxito sin contenido
             return Response(
-                {"message": "Entity deleted successfully"},
+                {"message": "Entidad eliminada correctamente"},
                 status=status.HTTP_204_NO_CONTENT,
             )
 

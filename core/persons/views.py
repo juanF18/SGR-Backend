@@ -46,7 +46,6 @@ person_request_body = openapi.Schema(
 
 
 class PersonView(APIView):
-
     """
     Class to handle HTTP requests related to persons
 
@@ -67,7 +66,6 @@ class PersonView(APIView):
         },
     )
     def get(self, request):
-
         """
         Get all persons
         @param request: HTTP request
@@ -81,7 +79,7 @@ class PersonView(APIView):
             return Response(person_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
-                "message": f"Error retrieving persons: {str(e)}",
+                "message": f"Error obteniendo las personas: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -99,13 +97,12 @@ class PersonView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new person
         @param request: HTTP request
         @return: JSON response
         """
-        
+
         try:
             data = request.data
             rubro = Rubro.objects.get(id=data["rubro_id"])
@@ -123,25 +120,26 @@ class PersonView(APIView):
             return Response(person_serializer.data, status=status.HTTP_201_CREATED)
         except Rubro.DoesNotExist:
             response = {
-                "message": "Rubro does not exist",
+                "message": "Rubro no encontrado",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             response = {
-                "message": f"Error creating person: {str(e)}",
+                "message": f"Error creando la persona: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PersonDetailView(APIView):
-
     """
     Class to handle HTTP requests related to a specific person
-    
+
     @methods:
     - get: Get a specific person by ID
+    - put: Update a specific person by ID
+    - delete: Delete a specific person by ID
     """
 
     # Documentar el método GET para obtener una persona específica por ID
@@ -156,7 +154,6 @@ class PersonDetailView(APIView):
         },
     )
     def get(self, request, id):
-
         """
         Get a specific person by ID
         @param request: HTTP request
@@ -171,13 +168,106 @@ class PersonDetailView(APIView):
             return Response(person_serializer.data, status=status.HTTP_200_OK)
         except Person.DoesNotExist:
             response = {
-                "message": "Person does not exist",
+                "message": "Persona no encontrada",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             response = {
-                "message": f"Error retrieving person: {str(e)}",
+                "message": f"Error obteniendo la persona: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar una persona específica por ID",
+        request_body=person_request_body,
+        responses={
+            200: openapi.Response(
+                description="Persona actualizada correctamente", schema=PersonSerializer
+            ),
+            404: openapi.Response(description="Persona no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+        """
+        Update a specific person by ID
+        @param request: HTTP request
+        @param id: Person ID
+        @return: JSON response
+        """
+
+        try:
+            person = Person.objects.get(id=pk)
+
+            data = request.data
+
+            if data.get("rubro_id"):
+                rubro = Rubro.objects.get(id=data["rubro_id"])
+                person.rubro_id = rubro
+
+            person.job_title = data.get("job_title", person.job_title)
+            person.dedication = data.get("dedication", person.dedication)
+            person.weeks = data.get("weeks", person.weeks)
+            person.fees = data.get("fees", person.fees)
+            person.value_hour = data.get("value_hour", person.value_hour)
+            person.total = data.get("total", person.total)
+
+            person.save()
+
+            person_serializer = PersonSerializer(person, many=False)
+
+            return Response(person_serializer.data, status=status.HTTP_200_OK)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no encontrado",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Person.DoesNotExist:
+            response = {
+                "message": "Persona no encontrada",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error actualizando la persona: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Eliminar una persona específica por ID",
+        responses={
+            204: openapi.Response(description="Persona eliminada correctamente"),
+            404: openapi.Response(description="Persona no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+        """
+        Delete a specific person by ID
+        @param request: HTTP request
+        @param id: Person ID
+        @return: JSON response
+        """
+
+        try:
+            person = Person.objects.get(id=pk)
+            person.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Person.DoesNotExist:
+            response = {
+                "message": "Persona no encontrada",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error eliminando la persona: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

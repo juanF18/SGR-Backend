@@ -17,7 +17,6 @@ role_request_body = openapi.Schema(
 
 
 class RoleView(APIView):
-
     """
     Class to handle HTTP requests related to roles
 
@@ -71,7 +70,6 @@ class RoleView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new role
         @param request: HTTP request
@@ -100,6 +98,7 @@ class RoleView(APIView):
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class RoleDetailView(APIView):
     # Documentar el método GET para obtener un rol específico por ID
     @swagger_auto_schema(
@@ -113,7 +112,6 @@ class RoleDetailView(APIView):
         },
     )
     def get(self, request, id):
-
         """
         Get a specific role by ID
         @param request: HTTP request
@@ -138,7 +136,7 @@ class RoleDetailView(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     # Documentar el método PUT para actualizar un rol existente
     @swagger_auto_schema(
         operation_description="Actualizar un rol existente",
@@ -155,7 +153,6 @@ class RoleDetailView(APIView):
         },
     )
     def put(self, request, id):
-
         """
         Update an existing role
         @param request: HTTP request
@@ -181,6 +178,40 @@ class RoleDetailView(APIView):
         except Exception as e:
             response = {
                 "message": f"Error updating role: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Eliminar un rol existente",
+        responses={
+            204: openapi.Response(description="Rol eliminado correctamente"),
+            404: openapi.Response(description="Rol no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, id):
+        """
+        Delete an existing role
+        @param request: HTTP request
+        @param id: Role ID
+        @return: JSON response
+        """
+
+        try:
+            role = self.get_object(id)
+            role.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Role.DoesNotExist:
+            response = {
+                "message": "Role not found",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error deleting role: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

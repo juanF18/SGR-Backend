@@ -40,7 +40,6 @@ item_request_body = openapi.Schema(
 
 
 class ItemView(APIView):
-
     """
     Class to handle HTTP requests related to items
 
@@ -61,7 +60,6 @@ class ItemView(APIView):
         },
     )
     def get(self, request):
-
         """
         Get all items
         @param request: HTTP request
@@ -93,7 +91,6 @@ class ItemView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new item
         @param request: HTTP request
@@ -129,14 +126,15 @@ class ItemView(APIView):
 
 
 class ItemDetailView(APIView):
-
     """
     Class to handle HTTP requests related to a specific item
 
     @methods:
     - get: Get a specific item by ID
+    - put: Update a specific item by ID
+    - delete: Delete a specific item by ID
     """
-    
+
     # Documentar el método GET para obtener un item específico por ID
     @swagger_auto_schema(
         operation_description="Obtener un item específico por ID",
@@ -163,6 +161,99 @@ class ItemDetailView(APIView):
         except Exception as e:
             response = {
                 "message": f"Error retrieving item: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar un item específico por ID",
+        request_body=item_request_body,
+        responses={
+            200: openapi.Response(
+                description="Item actualizado correctamente", schema=ItemSerializer
+            ),
+            400: openapi.Response(description="Item no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+        """
+        Update a specific item by ID
+        @param request: HTTP request
+        @param pk: Item ID
+        @return: JSON response
+        """
+
+        try:
+            item = Item.objects.get(id=pk)
+
+            data = request.data
+
+            if data.get("rubro_id"):
+                rubro = Rubro.objects.get(id=data["rubro_id"])
+                item.rubro_id = rubro
+
+            item.description = data.get("description", item.description)
+            item.justificacion = data.get("justificacion", item.justificacion)
+            item.quantity = data.get("quantity", item.quantity)
+            item.unit_value = data.get("unit_value", item.unit_value)
+            item.total_value = data.get("total_value", item.total_value)
+
+            item.save()
+
+            item_serializer = ItemSerializer(item)
+
+            return Response(item_serializer.data, status=status.HTTP_200_OK)
+
+        except Item.DoesNotExist:
+            response = {
+                "message": "Item no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no existe",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error actualizando item: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Eliminar un item específico por ID",
+        responses={
+            204: openapi.Response(description="Item eliminado correctamente"),
+            400: openapi.Response(description="Item no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+        """
+        Delete a specific item by ID
+        @param request: HTTP request
+        @param pk: Item ID
+        @return: JSON response
+        """
+
+        try:
+            item = Item.objects.get(id=pk)
+            item.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Item.DoesNotExist:
+            response = {
+                "message": "Item no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error eliminando item: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -80,7 +80,7 @@ class ActivityView(APIView):
             return Response(activity_serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             response = {
-                "message": f"Error retrieving activities: {str(e)}",
+                "message": f"Error alobtener las actividades: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -126,19 +126,19 @@ class ActivityView(APIView):
             return Response(activity_serializer.data, status=status.HTTP_201_CREATED)
         except Project.DoesNotExist:
             response = {
-                "message": "Project does not exist",
+                "message": "El proyecto no existe",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Rubro.DoesNotExist:
             response = {
-                "message": "Rubro does not exist",
+                "message": "El rubro no existe",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error creating activity: {str(e)}",
+                "message": f"Error creando la actividad: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -151,6 +151,8 @@ class ActivityDetailView(APIView):
 
     @methods:
     - get: Get a specific activity by ID
+    - put: Update a specific activity by ID
+    - delete: Delete a specific activity by ID
     """
 
     # Documentar el método GET para obtener el detalle de una actividad
@@ -181,13 +183,122 @@ class ActivityDetailView(APIView):
             return Response(activity_serializer.data, status=status.HTTP_200_OK)
         except Activity.DoesNotExist:
             response = {
-                "message": "Activity does not exist",
+                "message": "Actividad no encontrada",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error retrieving activity: {str(e)}",
+                "message": f"Error al obtener la actividad: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_description="Actualizar una actividad específica por ID",
+        request_body=activity_request_body,
+        responses={
+            200: openapi.Response(
+                description="Actividad actualizada correctamente", schema=ActivitySerializer
+            ),
+            400: openapi.Response(description="Actividad no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def put(self, request, pk):
+            
+            """
+            Update a specific activity by ID
+            @param request: HTTP request
+            @param pk: Activity ID
+            @return: JSON response
+            """
+    
+            try:
+                activity = Activity.objects.get(id=pk)
+
+                data = request.data
+            
+                if data.get("project_id"):
+                    project = Project.objects.get(id=data["project_id"])
+                    activity.project = project
+
+                if data.get("rubro_id"):
+                    rubro = Rubro.objects.get(id=data["rubro_id"])
+                    activity.rubro = rubro
+
+                activity.name = data.get("name", activity.name)
+                activity.description = data.get("description", activity.description)
+                activity.type = data.get("type", activity.type)
+                activity.start_date = data.get("start_date", activity.start_date)
+                activity.end_date = data.get("end_date", activity.end_date)
+                activity.state = data.get("state", activity.state)
+
+                activity.save()
+
+                activity_serializer = ActivitySerializer(activity, many=False)
+
+                return Response(activity_serializer.data, status=status.HTTP_200_OK)
+
+            except Activity.DoesNotExist:
+                response = {
+                    "message": "Actividad no encontrada",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            except Project.DoesNotExist:
+                response = {
+                    "message": "Proyecto no encontrado",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            except Rubro.DoesNotExist:
+                response = {
+                    "message": "Rubro no encontrado",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                response = {
+                    "message": f"Error al actualizar la actividad: {str(e)}",
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
+                return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    @swagger_auto_schema(
+        operation_description="Eliminar una actividad específica por ID",
+        responses={
+            204: openapi.Response(description="Actividad eliminada correctamente"),
+            400: openapi.Response(description="Actividad no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def delete(self, request, pk):
+
+        """
+        Delete a specific activity by ID
+        @param request: HTTP request
+        @param pk: Activity ID
+        @return: JSON response
+        """
+
+        try:
+            activity = Activity.objects.get(id=pk)
+            activity.delete()
+
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Activity.DoesNotExist:
+            response = {
+                "message": "Actividad no encontrada",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error al eliminar la actividad: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            
