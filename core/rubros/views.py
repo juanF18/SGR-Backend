@@ -241,3 +241,51 @@ class RubroDetailView(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RubroProjectView(APIView):
+    """
+    Class to handle HTTP requests related to rubros by project
+
+    @methods:
+    - get: Get all rubros by project
+    """
+
+    # Documentar el método GET para obtener todos los rubros por proyecto
+    @swagger_auto_schema(
+        operation_description="Obtener todos los rubros por proyecto",
+        responses={
+            200: openapi.Response(
+                description="Rubros recuperados correctamente",
+                schema=RubroSerializer(many=True),
+            ),
+            400: openapi.Response(description="Proyecto no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request, project_id):
+        """
+        Get all rubros by project
+        @param request: HTTP request
+        @param pk: Project ID
+        @return: JSON response
+        """
+
+        try:
+            project = Project.objects.get(id=project_id)
+            data = Rubro.objects.filter(project_id=project)
+            rubro_serializer = RubroSerializer(data, many=True)
+
+            return Response(rubro_serializer.data, status=status.HTTP_200_OK)
+        except Project.DoesNotExist:
+            response = {
+                "message": "Proyecto no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error obteniendo los rubros: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

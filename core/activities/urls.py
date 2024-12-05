@@ -8,4 +8,9 @@ urlpatterns = [
         views.ActivityDetailView.as_view(),
         name="activity_detail_view",
     ),
+    path(
+        "activities/<uuid:project_id>",
+        views.ActivityByProjectView(),
+        name="activities_by_project_view",
+    ),
 ]
