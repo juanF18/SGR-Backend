@@ -61,6 +61,8 @@ class LoginUserSerializer(serializers.Serializer):
     last_name = serializers.CharField(read_only=True)
     role_name = serializers.CharField(read_only=True)
     entity_name = serializers.CharField(read_only=True)
+    user_id = serializers.CharField(read_only=True)
+    entity_id = serializers.CharField(read_only=True)
 
     def validate(self, attrs):
         """
@@ -92,9 +94,13 @@ class LoginUserSerializer(serializers.Serializer):
             "email": user.email,
             "role_name": user.role.name if user.role else None,
             "entity_name": user.entity.name if user.entity else None,
+            "user_id": user.id,
+            "entity_id": user.entity.id if user.entity else None,
             "refresh": str(refresh),
             "access": str(access_token),
         }
+
+        print("Esta es la data")
 
         return user_data
 

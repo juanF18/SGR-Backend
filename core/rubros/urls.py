@@ -11,4 +11,5 @@ urlpatterns = [
         views.RubroProjectView.as_view(),
         name="rubro_project_view",
     ),
+    path("rubros/sum/", views.RubrosSumView.as_view(), name="rubros_sum_view"),
 ]
