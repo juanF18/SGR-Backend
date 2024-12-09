@@ -23,4 +23,4 @@ class Task(models.Model):
 
     class Meta:
         db_table = "tasks"
-        ordering = ["id"]
+        ordering = ["task_num"]
