@@ -34,9 +34,6 @@ cdps_request_body = openapi.Schema(
         "is_canceled": openapi.Schema(
             type=openapi.TYPE_BOOLEAN, description="Indica si el CDP está cancelado"
         ),
-        "document_url": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Documento asociado al CDP"
-        ),
         "rubro_id": openapi.Schema(
             type=openapi.TYPE_STRING, description="ID del Rubro asociado al CDP"
         ),
@@ -116,7 +113,6 @@ class CdpsView(APIView):
                 description=data["description"],
                 is_generated=data["is_generated"],
                 is_canceled=data["is_canceled"],
-                document_url=data["document_url"],
                 rubro_id=rubro.id,
             )
             
@@ -221,7 +217,6 @@ class CdpsDetailView(APIView):
             cdp.description = data.get("description", cdp.description)
             cdp.is_generated = data.get("is_generated", cdp.is_generated)
             cdp.is_canceled = data.get("is_canceled", cdp.is_canceled)
-            cdp.document_url = data.get("document_url", cdp.document_url)
 
             cdp.save()
             
