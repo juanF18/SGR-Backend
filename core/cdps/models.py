@@ -14,9 +14,6 @@ class Cdps(models.Model):
     description = models.TextField("description", null=True, blank=True)
     is_generated = models.BooleanField("is_generated", default=False)
     is_canceled = models.BooleanField("is_canceled", default=False)
-    document_url = models.CharField(
-        "document_url", max_length=150, null=True, blank=True
-    )
     rubro = models.ForeignKey(
         Rubro, on_delete=models.SET_NULL, null=True, blank=True
     )
