@@ -6,6 +6,11 @@ from .serializers import CdpsSerializer
 from core.rubros.models import Rubro
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from core.users.models import User
+from core.entities.models import Entity
+from .generate_pdf import GeneratePdf
+from django.http import HttpResponse
+
 
 # Definir el cuerpo de la solicitud para el POST
 cdps_request_body = openapi.Schema(
@@ -29,7 +34,7 @@ cdps_request_body = openapi.Schema(
         "is_canceled": openapi.Schema(
             type=openapi.TYPE_BOOLEAN, description="Indica si el CDP está cancelado"
         ),
-        "document": openapi.Schema(
+        "document_url": openapi.Schema(
             type=openapi.TYPE_STRING, description="Documento asociado al CDP"
         ),
         "rubro_id": openapi.Schema(
@@ -111,12 +116,19 @@ class CdpsView(APIView):
                 description=data["description"],
                 is_generated=data["is_generated"],
                 is_canceled=data["is_canceled"],
-                document=data["document"],
-                rubro_id=rubro,
+                document_url=data["document_url"],
+                rubro_id=rubro.id,
             )
+            
             cdps_serializer = CdpsSerializer(cdps, many=False)
 
             return Response(cdps_serializer.data, status=status.HTTP_201_CREATED)
+        except Rubro.DoesNotExist:
+            response = {
+                "message": "Rubro no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
                 "message": f"Error al crear el cdp: {str(e)}",
@@ -209,7 +221,7 @@ class CdpsDetailView(APIView):
             cdp.description = data.get("description", cdp.description)
             cdp.is_generated = data.get("is_generated", cdp.is_generated)
             cdp.is_canceled = data.get("is_canceled", cdp.is_canceled)
-            cdp.document = data.get("document", cdp.document)
+            cdp.document_url = data.get("document_url", cdp.document_url)
 
             cdp.save()
             
@@ -270,6 +282,70 @@ class CdpsDetailView(APIView):
         except Exception as e:
             response = {
                 "message": f"Error al eliminar cdp: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CdpsGeneratePdf(APIView):
+
+    """
+    Class to handle HTTP requests related to generate PDF from CDP
+
+    @methods:
+    - get: Generate PDF from CDP
+    """
+
+    @swagger_auto_schema(
+        operation_description="Generar PDF a partir de un CDP",
+        responses={
+            200: openapi.Response(description="PDF generado correctamente"),
+            400: openapi.Response(description="CDP no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request, cdps_id, user_id):
+
+        """
+        Generate PDF from CDP
+        @param request: HTTP request
+        @param id: CDP ID
+        @param user_id: User ID
+        @return: PDF response
+        """
+
+        try:
+            cdp = Cdps.objects.get(id=cdps_id)
+            user = User.objects.get(id=user_id)
+            entity = Entity.objects.get(id=user.entity_id)
+
+            generatePdf = GeneratePdf(entity, user, cdp)
+            pdf = generatePdf.generate_pdf()
+
+            response = HttpResponse(pdf, content_type="application/pdf")
+            response["Content-Disposition"] = 'attachment; filename="cdp.pdf"'
+            return response
+        except Cdps.DoesNotExist:
+            response = {
+                "message": "Cdp no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            response = {
+                "message": "Usuario no encontrado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Entity.DoesNotExist:
+            response = {
+                "message": "Entidad no encontrada",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response = {
+                "message": f"Error al generar pdf: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
