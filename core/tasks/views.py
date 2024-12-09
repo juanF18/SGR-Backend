@@ -12,19 +12,53 @@ from drf_yasg import openapi
 task_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
+        "task_num": openapi.Schema(type=openapi.TYPE_INTEGER, example=0),
         "name": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Nombre de la tarea"
+            type=openapi.TYPE_STRING,
+            description="Nombre de la tarea",
+            maxLength=500,  # Limite de caracteres para el nombre de la tarea
+            example="Definir la estructura de la base de datos (TRL3)",
         ),
         "description": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Descripción de la tarea"
+            type=openapi.TYPE_STRING,
+            description="Descripción de la tarea",
+            x_nullable=True,  # Este campo puede ser nulo
+            maxLength=1000,  # Limite de caracteres para la descripción
+            example="Descripción detallada de la tarea...",
         ),
         "state": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Estado de la tarea"
+            type=openapi.TYPE_STRING,
+            description="Estado de la tarea (ej. Pendiente, En progreso, Finalizada)",
+            enum=[
+                "Pendiente",
+                "En progreso",
+                "Finalizada",
+                "Cancelada",
+            ],  # Valores posibles
+            example="Pendiente",
         ),
         "activity_id": openapi.Schema(
-            type=openapi.TYPE_STRING, description="ID de la actividad asociada"
+            type=openapi.TYPE_STRING,
+            description="ID de la actividad asociada a la tarea",
+            format=openapi.FORMAT_UUID,  # El ID de la actividad es un UUID
+            example="5f8b3c6b-224c-48fd-9e38-8c5ed9250f4e",
+        ),
+        "start_date": openapi.Schema(
+            type=openapi.TYPE_STRING,
+            description="Fecha de inicio de la tarea",
+            format=openapi.FORMAT_DATE,  # Formato de fecha (YYYY-MM-DD)
+            x_nullable=True,  # Este campo puede ser nulo
+            example="2024-06-15",
+        ),
+        "end_date": openapi.Schema(
+            type=openapi.TYPE_STRING,
+            description="Fecha de finalización de la tarea",
+            format=openapi.FORMAT_DATE,  # Formato de fecha (YYYY-MM-DD)
+            x_nullable=True,  # Este campo puede ser nulo
+            example="2024-06-30",
         ),
     },
+    description="Cuerpo de la solicitud para crear una nueva tarea",
 )
 
 
@@ -90,12 +124,19 @@ class TaskView(APIView):
 
         try:
             data = request.data
-            activity = Activity.objects.get(id=data["activity_id"])
+            activity = (
+                Activity.objects.get(id=data["activity_id"])
+                if data.get("activity_id")
+                else None
+            )
             task = Task.objects.create(
+                task_num=data["task_num"],
                 name=data["name"],
                 description=data["description"],
+                start_date=data["start_date"],
+                end_date=data["end_date"],
                 state=data["state"],
-                activity_id=activity,
+                activity=activity,
             )
             task_serializer = TaskSerializer(task, many=False)
 
@@ -133,7 +174,7 @@ class TaskDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request, id):
+    def get(self, request, task_id):
         """
         Get a specific task by ID
         @param request: HTTP request
@@ -142,7 +183,7 @@ class TaskDetailView(APIView):
         """
 
         try:
-            task = Task.objects.get(id=id)
+            task = Task.objects.get(id=task_id)
             task_serializer = TaskSerializer(task, many=False)
 
             return Response(task_serializer.data, status=status.HTTP_200_OK)
@@ -170,7 +211,7 @@ class TaskDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def put(self, request, id):
+    def put(self, request, task_id):
         """
         Update a specific task by ID
         @param request: HTTP request
@@ -179,7 +220,7 @@ class TaskDetailView(APIView):
         """
 
         try:
-            task = Task.objects.get(id=id)
+            task = Task.objects.get(id=task_id)
             data = request.data
 
             if data.get("activity_id"):
@@ -221,7 +262,7 @@ class TaskDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def delete(self, request, pk):
+    def delete(self, request, task_id):
         """
         Delete a specific task by ID
         @param request: HTTP request
@@ -230,7 +271,7 @@ class TaskDetailView(APIView):
         """
 
         try:
-            task = Task.objects.get(id=pk)
+            task = Task.objects.get(id=task_id)
             task.delete()
 
             response = {

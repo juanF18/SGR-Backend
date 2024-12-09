@@ -62,7 +62,7 @@ class ProjectFileSerializer(serializers.Serializer):
     description = serializers.CharField(required=True)
     value = serializers.DecimalField(
         max_digits=20,  # 12 dígitos en total
-        decimal_places=2,  # 2 decimales (por ejemplo, para representar centavos)
+        decimal_places=1,  # 2 decimales (por ejemplo, para representar centavos)
         required=True,
     )
     start_date = serializers.DateField(required=True)
@@ -106,7 +106,7 @@ class ProjectValidator(forms.Form):
     )
 
     value = forms.DecimalField(
-        max_digits=15,
+        max_digits=20,
         decimal_places=1,
         required=True,
         validators=[
