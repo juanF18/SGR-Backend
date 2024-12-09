@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Rubro
@@ -21,6 +22,41 @@ rubro_request_body = openapi.Schema(
         ),
     },
 )
+
+
+class RubrosSumView(APIView):
+    # Método para obtener la suma de value_sgr de todos los rubros
+    @swagger_auto_schema(
+        operation_description="Obtener la suma de todos los valores de `value_sgr` de los rubros",
+        responses={
+            200: openapi.Response(
+                description="Suma de value_sgr obtenida correctamente"
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request):
+        """
+        Get the total sum of `value_sgr` for all rubros
+        @param request: HTTP request
+        @return: JSON response
+        """
+
+        try:
+            # Calcular la suma de todos los `value_sgr`
+            total_value_sgr = (
+                Rubro.objects.aggregate(Sum("value_sgr"))["value_sgr__sum"] or 0
+            )
+
+            return Response(
+                {"total_value_sgr": total_value_sgr}, status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            response = {
+                "message": f"Error obteniendo la suma de los rubros: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class RubroView(APIView):
