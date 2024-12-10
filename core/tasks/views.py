@@ -291,3 +291,59 @@ class TaskDetailView(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class TaskByActivityView(APIView):
+    """
+    Class to handle HTTP requests related to tasks by activity
+
+    @methods:
+    - get: Get all tasks by activity
+    """
+
+    # Documentar el método GET para obtener todas las tareas por actividad
+    @swagger_auto_schema(
+        operation_description="Obtener todas las tareas por actividad",
+        responses={
+            200: openapi.Response(
+                description="Tareas por actividad recuperadas correctamente",
+                schema=TaskSerializer(many=True),
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request):
+        """
+        Get all tasks by activity
+        @param request: HTTP request
+        @return: JSON response
+        """
+
+        activity_id = request.query_params.get("activity_id")
+
+        if not activity_id:
+            response = {
+                "message": "ID de actividad no proporcionado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            tasks = Task.objects.filter(activity=activity_id)
+
+            if not tasks.exists():
+                response = {
+                    "message": "No se encontraron tareas para la actividad proporcionada",
+                    "status": status.HTTP_404_NOT_FOUND,
+                }
+                return Response(response, status=status.HTTP_404_NOT_FOUND)
+
+            task_serializer = TaskSerializer(tasks, many=True)
+            return Response(task_serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            response = {
+                "message": f"Error obteniendo las tareas por actividad: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

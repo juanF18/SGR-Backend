@@ -293,36 +293,47 @@ class ActivityByProjectView(APIView):
 
     # Documentar el método GET para obtener actividades por proyecto
     @swagger_auto_schema(
-        operation_description="Obtener todas las actividades por proyecto",
+        operation_description="Filtrar actividades por proyecto",
         responses={
             200: openapi.Response(
                 description="Actividades recuperadas correctamente",
                 schema=ActivitySerializer(many=True),
             ),
-            400: openapi.Response(description="Proyecto no encontrado"),
+            400: openapi.Response(description="Actividad no encontrada"),
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request, project_id):
+    def get(self, request):
         """
         Get all activities by project
         @param request: HTTP request
-        @param pk: Project ID
         @return: JSON response
         """
 
-        try:
-            project = Project.objects.get(id=project_id)
-            data = Activity.objects.filter(project_id=project)
-            activity_serializer = ActivitySerializer(data, many=True)
+        project_id = request.query_params.get("project_id")
 
-            return Response(activity_serializer.data, status=status.HTTP_200_OK)
-        except Project.DoesNotExist:
+        if not project_id:
             response = {
-                "message": "Proyecto no encontrado",
+                "message": "ID de proyecto no proporcionado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+
+            activities = Activity.objects.filter(project_id=project_id)
+
+            if not activities.exists():
+                response = {
+                    "message": "Actividades no encontradas para el proyecto proporcionado",
+                    "status": status.HTTP_400_BAD_REQUEST,
+                }
+
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+            activity_serializer = ActivitySerializer(activities, many=True)
+            return Response(activity_serializer.data, status=status.HTTP_200_OK)
+
         except Exception as e:
             response = {
                 "message": f"Error al obtener las actividades: {str(e)}",
