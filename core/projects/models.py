@@ -11,7 +11,7 @@ class Project(models.Model):
     id = models.UUIDField(
         "id", primary_key=True, default=uuid.uuid4, editable=False, unique=True
     )
-    name = models.CharField("name", max_length=100, blank=True, null=True)
+    name = models.CharField("name", max_length=250, blank=True, null=True)
     description = models.TextField("description", blank=True, null=True)
     value = models.DecimalField("value", max_digits=18, decimal_places=1, default=0)
     start_date = models.DateField("start_date", null=True, default=timezone.now)
