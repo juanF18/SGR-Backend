@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from .models import Movement
-from core.contracts.serializers import ContractSerializer
-
+from core.cdps.serializers import CdpsSerializer
 class MovementSerializer(serializers.ModelSerializer):
-    contract = ContractSerializer(many=False)
+    cdp = CdpsSerializer(many=False)
 
     class Meta:
         model = Movement
@@ -11,8 +10,8 @@ class MovementSerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
         representation = super().to_internal_value(data)
-        if data.get("contract"):
-            representation["contract_id"] = data.contract.get("id")
+        if data.get("cdp"):
+            representation["cdp_id"] = data.get("cdp").get("id")
         else:
-            representation["contract_id"] = None
+            representation["cdp_id"] = None
         return representation

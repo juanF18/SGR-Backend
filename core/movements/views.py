@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from .models import Movement
 from rest_framework.views import APIView
 from .serializers import MovementSerializer
-from core.contracts.models import Contract
+from core.cdps.models import Cdps
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -24,9 +24,9 @@ movement_request_body = openapi.Schema(
             type=openapi.TYPE_STRING,
             description="Tipo de movimiento (ingreso, egreso, etc.)",
         ),
-        "contract_id": openapi.Schema(
+        "cdp_id": openapi.Schema(
             type=openapi.TYPE_STRING,
-            description="ID del contrato relacionado con el movimiento",
+            description="ID del cdp asociado al movimiento",
         ),
     },
 )
@@ -92,19 +92,19 @@ class MovementView(APIView):
 
         try:
             data = request.data
-            contract = Contract.objects.get(id=data["contract_id"])
+            cdp = Cdps.objects.get(id=data["cdp_id"])
             movement = Movement.objects.create(
                 amount=data["amount"],
                 description=data["description"],
                 type=data["type"],
-                contract_id=contract,
+                cdp_id=cdp,
             )
             movement_serializer = MovementSerializer(movement, many=False)
 
             return Response(movement_serializer.data, status=status.HTTP_201_CREATED)
-        except Contract.DoesNotExist:
+        except Cdps.DoesNotExist:
             response = {
-                "message": "Contrato no encontrado",
+                "message": "Cdps no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -175,8 +175,8 @@ class MovementDetailView(APIView):
 
             data = request.data
 
-            if data.get("contract_id"):
-                contract = Contract.objects.get(id=data["contract_id"])
+            if data.get("cdp_id"):
+                contract = Cdps.objects.get(id=data["cdp_id"])
                 movement.contract = contract
 
             movement.amount = data.get("amount", movement.amount)
@@ -188,9 +188,9 @@ class MovementDetailView(APIView):
             movement_serializer = MovementSerializer(movement, many=False)
 
             return Response(movement_serializer.data, status=status.HTTP_200_OK)
-        except Contract.DoesNotExist:
+        except Cdps.DoesNotExist:
             response = {
-                "message": "Contrato no encontrado",
+                "message": "Cdps no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)

@@ -6,6 +6,8 @@ from .serializers import CdpsSerializer
 from core.rubros.models import Rubro
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from core.movements.models import Movement
+from core.movements.serializers import MovementSerializer
 from core.users.models import User
 from core.entities.models import Entity
 from .generate_pdf import GeneratePdf
@@ -34,9 +36,6 @@ cdps_request_body = openapi.Schema(
         "is_canceled": openapi.Schema(
             type=openapi.TYPE_BOOLEAN, description="Indica si el CDP está cancelado"
         ),
-        "document_url": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Documento asociado al CDP"
-        ),
         "rubro_id": openapi.Schema(
             type=openapi.TYPE_STRING, description="ID del Rubro asociado al CDP"
         ),
@@ -45,14 +44,14 @@ cdps_request_body = openapi.Schema(
 
 
 class CdpsView(APIView):
-
     """
     Class to handle HTTP requests related to Cdps
-    
+
     @methods:
     - get: Get all Cdps
     - post: Create a new CDP
     """
+
     # Documentar el método GET para obtener todos los CDPs
     @swagger_auto_schema(
         operation_description="Obtener todos los CDPs",
@@ -65,7 +64,6 @@ class CdpsView(APIView):
         },
     )
     def get(self, request):
-
         """
         Get all Cdps
         @param request: HTTP request
@@ -99,7 +97,6 @@ class CdpsView(APIView):
         },
     )
     def post(self, request):
-
         """
         Create a new CDP
         @param request: HTTP request
@@ -116,13 +113,24 @@ class CdpsView(APIView):
                 description=data["description"],
                 is_generated=data["is_generated"],
                 is_canceled=data["is_canceled"],
-                document_url=data["document_url"],
                 rubro_id=rubro.id,
             )
-            
+
             cdps_serializer = CdpsSerializer(cdps, many=False)
 
-            return Response(cdps_serializer.data, status=status.HTTP_201_CREATED)
+            movement = Movement.objects.create(
+                amount=cdps.amount,
+                description=cdps.description,
+                type="I",
+                cdp_id=cdps.id,
+            )
+
+            movement_serializer = MovementSerializer(movement, many=False)
+            rubro.value_sgr -= cdps.amount
+            rubro.save()
+            data = {"cdp": cdps_serializer.data, "movement": movement_serializer.data}
+            return Response(data, status=status.HTTP_201_CREATED)
+
         except Rubro.DoesNotExist:
             response = {
                 "message": "Rubro no encontrado",
@@ -138,7 +146,6 @@ class CdpsView(APIView):
 
 
 class CdpsDetailView(APIView):
-
     """
     Class to handle HTTP requests related to a specific CDP
 
@@ -160,7 +167,6 @@ class CdpsDetailView(APIView):
         },
     )
     def get(self, request, id):
-
         """
         Get a specific CDP by ID
         @param request: HTTP request
@@ -198,7 +204,6 @@ class CdpsDetailView(APIView):
         },
     )
     def put(self, request, pk):
-
         """
         Update a specific CDP by ID
         @param request: HTTP request
@@ -221,11 +226,10 @@ class CdpsDetailView(APIView):
             cdp.description = data.get("description", cdp.description)
             cdp.is_generated = data.get("is_generated", cdp.is_generated)
             cdp.is_canceled = data.get("is_canceled", cdp.is_canceled)
-            cdp.document_url = data.get("document_url", cdp.document_url)
 
             cdp.save()
-            
-            cdps_serializer = CdpsSerializer(cdp, many=False)            
+
+            cdps_serializer = CdpsSerializer(cdp, many=False)
 
             return Response(cdps_serializer.data, status=status.HTTP_200_OK)
         except Cdps.DoesNotExist:
@@ -256,7 +260,6 @@ class CdpsDetailView(APIView):
         },
     )
     def delete(self, request, pk):
-
         """
         Delete a specific CDP by ID
         @param request: HTTP request
@@ -288,7 +291,6 @@ class CdpsDetailView(APIView):
 
 
 class CdpsGeneratePdf(APIView):
-
     """
     Class to handle HTTP requests related to generate PDF from CDP
 
@@ -305,7 +307,6 @@ class CdpsGeneratePdf(APIView):
         },
     )
     def get(self, request, cdps_id, user_id):
-
         """
         Generate PDF from CDP
         @param request: HTTP request
