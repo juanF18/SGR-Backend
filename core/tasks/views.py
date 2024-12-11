@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Task
@@ -60,6 +61,85 @@ task_request_body = openapi.Schema(
     },
     description="Cuerpo de la solicitud para crear una nueva tarea",
 )
+
+
+class TaskStatisticsView(APIView):
+    """
+    Vista para obtener las estadísticas de tareas por estado
+    """
+
+    @swagger_auto_schema(
+        operation_description="Obtener el promedio de tareas por estado",
+        responses={
+            200: openapi.Response(
+                description="Promedio de tareas por estado",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "Pendiente": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, example=5
+                        ),
+                        "En progreso": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, example=8
+                        ),
+                        "Finalizada": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, example=10
+                        ),
+                        "Cancelada": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, example=2
+                        ),
+                    },
+                ),
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request):
+        """
+        Obtener el promedio de tareas por estado
+        @param request: Solicitud HTTP
+        @return: Respuesta JSON con los promedios
+        """
+
+        try:
+            # Contamos las tareas por estado
+            task_counts = Task.objects.values("state").annotate(count=Count("id"))
+
+            # Calculamos el total de tareas
+            total_tasks = Task.objects.count()
+
+            # Si no hay tareas, retornamos 0 para todos los estados
+            if total_tasks == 0:
+                return Response(
+                    {"Pendiente": 0, "En progreso": 0, "Finalizada": 0, "Cancelada": 0},
+                    status=status.HTTP_200_OK,
+                )
+
+            # Crear un diccionario con los estados y sus contadores
+            state_counts = {
+                "Pendiente": 0,
+                "En progreso": 0,
+                "Finalizada": 0,
+                "Cancelada": 0,
+            }
+
+            # Poblamos el diccionario con los resultados de la consulta
+            for task in task_counts:
+                state_counts[task["state"]] = task["count"]
+
+            # Calculamos los promedios
+            averages = {
+                state: count / total_tasks for state, count in state_counts.items()
+            }
+
+            return Response(averages, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            response = {
+                "message": f"Error obteniendo el promedio de tareas: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TaskView(APIView):

@@ -11,4 +11,9 @@ urlpatterns = [
         views.TaskByActivityView.as_view(),
         name="tasks_by_activity_view",
     ),
+    path(
+        "tasks/statistics",
+        views.TaskStatisticsView.as_view(),
+        name="task_statistics_view",
+    ),
 ]
