@@ -303,14 +303,13 @@ class ActivityByProjectView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request):
+    def get(self, request, project_id):
         """
         Get all activities by project
         @param request: HTTP request
+        @param project_id: ID del proyecto desde la URL
         @return: JSON response
         """
-
-        project_id = request.query_params.get("project_id")
 
         if not project_id:
             response = {
@@ -320,7 +319,6 @@ class ActivityByProjectView(APIView):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-
             activities = Activity.objects.filter(project_id=project_id)
 
             if not activities.exists():
@@ -328,7 +326,6 @@ class ActivityByProjectView(APIView):
                     "message": "Actividades no encontradas para el proyecto proporcionado",
                     "status": status.HTTP_400_BAD_REQUEST,
                 }
-
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
             activity_serializer = ActivitySerializer(activities, many=True)
