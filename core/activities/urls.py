@@ -9,7 +9,7 @@ urlpatterns = [
         name="activity_detail_view",
     ),
     path(
-        "activities/?project_id=<uuid:project_id>",
+        "activities/project/<uuid:project_id>",
         ActivityByProjectView.as_view(),
         name="activities_by_project_view",
     ),

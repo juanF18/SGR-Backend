@@ -7,7 +7,7 @@ urlpatterns = [
         "rubros/<uuid:id>/", views.RubroDetailView.as_view(), name="rubro_detail_view"
     ),
     path(
-        "rubros/<uuid:project_id>/",
+        "rubros/project/<uuid:project_id>",
         views.RubroProjectView.as_view(),
         name="rubro_project_view",
     ),
