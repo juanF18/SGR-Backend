@@ -166,16 +166,15 @@ class CdpsDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request, id):
+    def get(self, request, cdp_id):  # Cambié 'id' a 'cdp_id'
         """
         Get a specific CDP by ID
         @param request: HTTP request
-        @param id: CDP ID
+        @param cdp_id: CDP ID
         @return: JSON response
         """
-
         try:
-            cdps = Cdps.objects.get(id=id)
+            cdps = Cdps.objects.get(id=cdp_id)
             cdps_serializer = CdpsSerializer(cdps, many=False)
 
             return Response(cdps_serializer.data, status=status.HTTP_200_OK)
@@ -203,16 +202,15 @@ class CdpsDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def put(self, request, pk):
+    def put(self, request, cdp_id):  # Cambié 'pk' a 'cdp_id'
         """
         Update a specific CDP by ID
         @param request: HTTP request
-        @param id: CDP ID
+        @param cdp_id: CDP ID
         @return: JSON response
         """
-
         try:
-            cdp = Cdps.objects.get(id=pk)
+            cdp = Cdps.objects.get(id=cdp_id)
 
             data = request.data
 
@@ -246,7 +244,7 @@ class CdpsDetailView(APIView):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error al actualizar cdp: {str(e)}",
+                "message": f"Error actualizando el cdp: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -259,32 +257,29 @@ class CdpsDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def delete(self, request, pk):
+    def delete(self, request, cdp_id):  # Cambié 'pk' a 'cdp_id'
         """
         Delete a specific CDP by ID
         @param request: HTTP request
-        @param id: CDP ID
+        @param cdp_id: CDP ID
         @return: JSON response
         """
-
         try:
-            cdp = Cdps.objects.get(id=pk)
+            cdp = Cdps.objects.get(id=cdp_id)
             cdp.delete()
 
-            response = {
-                "message": "Cdps eliminado correctamente",
-                "status": status.HTTP_200_OK,
-            }
-            return Response(response, status=status.HTTP_200_OK)
+            return Response(
+                {"message": "CDP eliminado correctamente"}, status=status.HTTP_200_OK
+            )
         except Cdps.DoesNotExist:
             response = {
-                "message": "Cdps no existe",
+                "message": "Cdp no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             response = {
-                "message": f"Error al eliminar cdp: {str(e)}",
+                "message": f"Error al eliminar el cdp: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
