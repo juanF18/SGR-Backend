@@ -312,14 +312,13 @@ class TaskByActivityView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request):
+    def get(self, request, activity_id):
         """
         Get all tasks by activity
         @param request: HTTP request
+        @param activity_id: ID de la actividad desde la URL
         @return: JSON response
         """
-
-        activity_id = request.query_params.get("activity_id")
 
         if not activity_id:
             response = {
