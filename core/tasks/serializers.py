@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Task
 from core.activities.serializers import ActivitySerializer
 
+
 class TaskSerializer(serializers.ModelSerializer):
     activity = ActivitySerializer(many=False)
 
