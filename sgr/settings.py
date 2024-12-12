@@ -179,6 +179,7 @@ CORS_ALLOW_HEADERS = [
     "accept",
     "x-csrftoken",
     "x-requested-with",
+    "X-Activity",
 ]
 
 
