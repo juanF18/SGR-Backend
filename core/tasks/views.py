@@ -448,37 +448,51 @@ class TaskByProjectView(APIView):
         },
     )
     def get(self, request, project_id):
+        activity_id = request.headers.get(
+            "X-Activity"
+        )  # Acceder al header de actividad
+
         if not project_id:
             response = {
                 "message": "ID de proyecto no proporcionado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             project = Project.objects.get(id=project_id)
-            tasks = (
-                (Task.objects.prefetch_related("activity"))
-                .filter(activity__project=project)
-                .select_related("activity__project")
+
+            # Construir la consulta de tareas
+            tasks_query = Task.objects.prefetch_related("activity").filter(
+                activity__project=project
             )
+
+            # Si se proporciona un `activity_id` en los headers, agregarlo como filtro
+            if activity_id:
+                tasks_query = tasks_query.filter(activity__id=activity_id)
+
+            tasks = tasks_query.select_related("activity__project")
 
             if not tasks.exists():
                 response = {
-                    "message": "No se encontraro tareas para el proyecto proporcionado",
+                    "message": "No se encontraron tareas para el proyecto proporcionado",
                     "status": status.HTTP_404_NOT_FOUND,
                 }
                 return Response(response, status=status.HTTP_404_NOT_FOUND)
+
             task_serializer = TaskSerializer(tasks, many=True)
             return Response(task_serializer.data, status=status.HTTP_200_OK)
+
         except Project.DoesNotExist:
             response = {
                 "message": "Proyecto no encontrado",
                 "status": status.HTTP_404_NOT_FOUND,
             }
             return Response(response, status=status.HTTP_404_NOT_FOUND)
+
         except Exception as e:
             response = {
-                "message": f"Error obtenido las tareas por proyecto: {str(e)}",
+                "message": f"Error obteniendo las tareas por proyecto: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
