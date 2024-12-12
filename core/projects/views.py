@@ -356,3 +356,59 @@ class ProjectDetail(APIView):
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ProjectByEntityView(APIView):
+    """
+    View to filter projects by entity_id passed in the URL path
+    """
+
+    @swagger_auto_schema(
+        operation_description="Obtener proyectos filtrados por ID de entidad",
+        responses={
+            200: openapi.Response(
+                description="Proyectos recuperados correctamente",
+                schema=ProjectSerializer(many=True),
+            ),
+            404: openapi.Response(description="Entidad no encontrada"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request, entity_id):
+        """
+        Get projects by entity_id passed in the URL path
+        @param request: HTTP request
+        @param entity_id: ID de la entidad desde la URL
+        @return: JSON response with filtered projects
+        """
+
+        # Validamos si el entity_id tiene el formato correcto de UUID
+        if not entity_id:
+            response = {
+                "message": "ID de actividad no proporcionado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Filtramos los proyectos por el 'entity_id'
+            projects = Project.objects.filter(entity_id=entity_id)
+
+            # Si no encontramos proyectos para esa entidad
+            if not projects.exists():
+                return Response(
+                    {"message": "No se encontraron proyectos para esta entidad."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Serializamos los proyectos
+            project_serializer = ProjectSerializer(
+                projects, many=True, context={"request": request}
+            )
+
+            return Response(project_serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"message": f"Error retrieving projects: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
