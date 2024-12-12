@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .models import Task
 from rest_framework.views import APIView
 from .serializers import TaskSerializer
+from core.projects.models import Project
 from core.activities.models import Activity
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -423,6 +424,61 @@ class TaskByActivityView(APIView):
         except Exception as e:
             response = {
                 "message": f"Error obteniendo las tareas por actividad: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class TaskByProjectView(APIView):
+    """
+    @methods:
+    - get: Get todas las tareas por del proyecto
+    """
+
+    @swagger_auto_schema(
+        operation_description="Obtener todas las tareas de un proyecto",
+        responses={
+            200: openapi.Response(
+                description="Tareas por proyecto recuperadas correctamente",
+                schema=TaskSerializer(many=True),
+            ),
+            400: openapi.Response(description="ID de proyecto no proporcionado"),
+            404: openapi.Response(description="Proyecto no encontrado"),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request, project_id):
+        if not project_id:
+            response = {
+                "message": "ID de proyecto no proporcionado",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            project = Project.objects.get(id=project_id)
+            tasks = (
+                (Task.objects.prefetch_related("activity"))
+                .filter(activity__project=project)
+                .select_related("activity__project")
+            )
+
+            if not tasks.exists():
+                response = {
+                    "message": "No se encontraro tareas para el proyecto proporcionado",
+                    "status": status.HTTP_404_NOT_FOUND,
+                }
+                return Response(response, status=status.HTTP_404_NOT_FOUND)
+            task_serializer = TaskSerializer(tasks, many=True)
+            return Response(task_serializer.data, status=status.HTTP_200_OK)
+        except Project.DoesNotExist:
+            response = {
+                "message": "Proyecto no encontrado",
+                "status": status.HTTP_404_NOT_FOUND,
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response = {
+                "message": f"Error obtenido las tareas por proyecto: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
