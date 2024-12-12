@@ -10,6 +10,7 @@ from core.movements.models import Movement
 from core.movements.serializers import MovementSerializer
 from core.users.models import User
 from core.entities.models import Entity
+from core.activities.models import Activity
 from .generate_pdf import GeneratePdf
 from django.http import HttpResponse
 
@@ -38,6 +39,9 @@ cdps_request_body = openapi.Schema(
         ),
         "rubro_id": openapi.Schema(
             type=openapi.TYPE_STRING, description="ID del Rubro asociado al CDP"
+        ),
+        "activity_id": openapi.Schema(
+            type=openapi.TYPE_STRING, description="ID de la Actividad asociada al CDP"
         ),
     },
 )
@@ -106,6 +110,7 @@ class CdpsView(APIView):
         try:
             data = request.data
             rubro = Rubro.objects.get(id=data["rubro_id"])
+            activity = Activity.objects.get(id=data["activity_id"])
             cdps = Cdps.objects.create(
                 number=data["number"],
                 expedition_date=data["expedition_date"],
@@ -114,6 +119,7 @@ class CdpsView(APIView):
                 is_generated=data["is_generated"],
                 is_canceled=data["is_canceled"],
                 rubro_id=rubro.id,
+                activity_id=activity.id,
             )
 
             cdps_serializer = CdpsSerializer(cdps, many=False)
@@ -217,6 +223,10 @@ class CdpsDetailView(APIView):
             if data.get("rubro_id"):
                 rubro = Rubro.objects.get(id=data["rubro_id"])
                 cdp.rubro_id = rubro
+
+            if data.get("activity_id"):
+                activity = Activity.objects.get(id=data["activity_id"])
+                cdp.activity_id = activity
 
             cdp.number = data.get("number", cdp.number)
             cdp.expedition_date = data.get("expedition_date", cdp.expedition_date)
