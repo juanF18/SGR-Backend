@@ -18,7 +18,7 @@ class Cdps(models.Model):
     is_generated = models.BooleanField("is_generated", default=False)
     is_canceled = models.BooleanField("is_canceled", default=False)
     rubro = models.ForeignKey(Rubro, on_delete=models.SET_NULL, null=True, blank=True)
-    activity = models.CharField(
+    activity = models.ForeignKey(
         Activity, on_delete=models.SET_NULL, null=True, blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
