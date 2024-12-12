@@ -12,6 +12,11 @@ urlpatterns = [
         name="tasks_by_activity_view",
     ),
     path(
+        "tasks/project/<uuid:project_id>",
+        views.TaskByProjectView.as_view(),
+        name="task_project_detail_view",
+    ),
+    path(
         "tasks/statistics",
         views.TaskStatisticsView.as_view(),
         name="task_statistics_view",
