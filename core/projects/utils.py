@@ -1,4 +1,6 @@
 import pandas as pd
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 from core.rubros.models import Rubro
 from core.activities.models import Activity
 from core.tasks.models import Task
@@ -74,6 +76,27 @@ class ActivitiesProcessor:
         try:
             # Leer el archivo Excel
             df = pd.read_excel(self.file, sheet_name="Matriz de Formulación", header=1)
+            dfc = pd.read_excel(self.file, sheet_name="Cronograma", header=0)
+
+            fecha_base = self.convertir_fecha_base(self.project.start_date)
+
+            dfc[["start_date", "end_date"]] = dfc.apply(
+                lambda row: self.calcular_fechas(row, fecha_base),
+                axis=1,
+                result_type="expand",
+            )
+
+            # Asegúrate de que las columnas start_date y end_date no tengan valores nulos o None
+            dfc["start_date"] = dfc["start_date"].fillna(pd.NaT)
+            dfc["end_date"] = dfc["end_date"].fillna(pd.NaT)
+
+            columnas_deseadas_cronograma = [
+                "DURACION",
+                "DESDE",
+                "HASTA",
+                "start_date",
+                "end_date",
+            ]
 
             # Filtrar las columnas necesarias
             columnas_deseadas = [
@@ -84,11 +107,19 @@ class ActivitiesProcessor:
                 "Personal requerido (perfiles y descripción)",
                 "Resultados de la actividad",
             ]
+            columnas_presentes_cronograma = [
+                colC for colC in columnas_deseadas_cronograma if colC in dfc.columns
+            ]
             columnas_presentes = [col for col in columnas_deseadas if col in df.columns]
             df_filtrado = df[columnas_presentes]
+            df_filtrado_cronograma = dfc[columnas_presentes_cronograma]
 
             # Limpiar el JSON usando la lógica de salida que ya definiste
-            actividades_limpias = self.limpiar_json_con_condicion_de_salida(df_filtrado)
+            actividades_limpias = self.limpiar_json_con_condicion_de_salida(
+                df_filtrado, df_filtrado_cronograma
+            )
+
+            print(actividades_limpias)
 
             # Crear las actividades y tareas en la base de datos
             for actividad_data in actividades_limpias:
@@ -96,8 +127,9 @@ class ActivitiesProcessor:
                 actividad = Activity.objects.create(
                     name=actividad_data["actividad"],
                     project=self.project,
-                    start_date=None,
-                    end_date=None,
+                    start_date=actividad_data["start_date"],
+                    end_date=actividad_data["end_date"],
+                    duration=actividad_data["duration"],
                     state="Pendiente",
                 )
 
@@ -122,7 +154,7 @@ class ActivitiesProcessor:
                 f"Error inesperado al procesar el archivo de actividades: {str(e)}"
             )
 
-    def limpiar_json_con_condicion_de_salida(self, df):
+    def limpiar_json_con_condicion_de_salida(self, df, dfc):
         actividades_filtradas = []
         actividad_actual = None
         tareas_filtradas = []
@@ -157,8 +189,60 @@ class ActivitiesProcessor:
             actividades_filtradas.append(
                 {"actividad": actividad_actual, "tareas": tareas_filtradas}
             )
+        for i, actividad in enumerate(actividades_filtradas):
+            # Extraemos el start_date y end_date de dfC usando el índice i
+            fechas = dfc.iloc[i][
+                ["start_date", "end_date", "DURACION"]
+            ]  # Esto se hace por índice de dfC
+            actividad["start_date"] = str(fechas["start_date"])
+            actividad["end_date"] = str(fechas["end_date"])
+            actividad["duration"] = int(fechas["DURACION"])
 
         return actividades_filtradas
+
+    def convertir_fecha_base(self, fecha_base):
+        """
+        Convierte una fecha (datetime.date o datetime.datetime o str) a un objeto datetime.datetime.
+        Si es un datetime.date, la hora será 00:00:00. Si es una cadena (str), se intentará convertirla.
+        """
+
+        fecha_datetime = datetime.strptime(fecha_base, "%Y-%m-%d")
+
+        return fecha_datetime
+
+    def calcular_fechas(self, row, fecha_base):
+        try:
+            # Asegúrate de que fecha_base es un objeto datetime válido
+            if not isinstance(fecha_base, datetime):
+                raise ValueError("fecha_base debe ser un objeto datetime")
+
+            # Convertir "DESDE" y "DURACION" a números si no lo son
+            desde = pd.to_numeric(row["DESDE"], errors="coerce")
+            duracion = pd.to_numeric(row["DURACION"], errors="coerce")
+
+            # Verificar que los valores no sean NaN o None
+            if pd.isna(desde) or pd.isna(duracion):
+                return pd.NaT, pd.NaT  # Devolvemos NaT si hay valores faltantes
+
+            # Calcular las fechas
+            if desde == 1:
+                start_date = fecha_base
+                end_date = start_date + relativedelta(months=int(duracion))
+            else:
+                start_date = fecha_base + relativedelta(months=int(desde) - 1)
+                end_date = start_date + relativedelta(months=int(duracion))
+
+            # Asegúrate de que las fechas sean de tipo datetime.date
+            if isinstance(start_date, datetime):
+                start_date = start_date.date()
+            if isinstance(end_date, datetime):
+                end_date = end_date.date()
+
+            return start_date, end_date
+
+        except Exception as e:
+            print(f"Error en calcular_fechas: {str(e)}")
+            return pd.NaT, pd.NaT  # Devolvemos pd.NaT si hay un error
 
 
 class InvalidFileFormatError(APIException):
