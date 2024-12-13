@@ -27,30 +27,43 @@ rubro_request_body = openapi.Schema(
 class RubrosSumView(APIView):
     # Método para obtener la suma de value_sgr de todos los rubros
     @swagger_auto_schema(
-        operation_description="Obtener la suma de todos los valores de `value_sgr` de los rubros",
+        operation_description="Obtener la suma de todos los valores de `value_sgr` de los rubros para un proyecto específico",
         responses={
             200: openapi.Response(
-                description="Suma de value_sgr obtenida correctamente"
+                description="Suma de `value_sgr` obtenida correctamente para el proyecto",
+                examples={"application/json": {"total_value_sgr": 123456.78}},
+            ),
+            400: openapi.Response(
+                description="ID de proyecto no proporcionado o no encontrado"
             ),
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request):
+    def get(self, request, project_id=None):
         """
-        Get the total sum of `value_sgr` for all rubros
-        @param request: HTTP request
-        @return: JSON response
+        Obtener la suma de todos los `value_sgr` de los rubros de un proyecto específico
+        @param request: Solicitud HTTP
+        @param project_id: ID del proyecto para filtrar los rubros
+        @return: Respuesta JSON con la suma de los valores de `value_sgr` de los rubros
         """
+        if not project_id:
+            return Response(
+                {"message": "El ID del proyecto es obligatorio."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
-            # Calcular la suma de todos los `value_sgr`
+            # Filtrar los rubros por el ID del proyecto
             total_value_sgr = (
-                Rubro.objects.aggregate(Sum("value_sgr"))["value_sgr__sum"] or 0
+                Rubro.objects.filter(project_id=project_id)
+                .aggregate(Sum("value_sgr"))
+                .get("value_sgr__sum", 0)  # Si no hay rubros, retornar 0
             )
 
             return Response(
                 {"total_value_sgr": total_value_sgr}, status=status.HTTP_200_OK
             )
+
         except Exception as e:
             response = {
                 "message": f"Error obteniendo la suma de los rubros: {str(e)}",
