@@ -12,6 +12,7 @@ class Activity(models.Model):
     name = models.CharField("name", max_length=500, null=True, blank=True)
     description = models.TextField("description", null=True, blank=True)
     type = models.CharField("type", max_length=150, null=True, blank=True)
+    duration = models.IntegerField("duration", default=0)
     start_date = models.DateField("start_date", null=True, blank=True)
     end_date = models.DateField("end_date", null=True, blank=True)
     state = models.CharField("state", max_length=256, null=True, blank=True)
