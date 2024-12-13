@@ -12,7 +12,7 @@ class Cdps(models.Model):
     number = models.CharField("number", max_length=50, null=True, blank=True)
     expedition_date = models.DateField("expedition_date", null=True, blank=True)
     amount = models.DecimalField(
-        "amount", max_digits=10, decimal_places=2, null=True, blank=True
+        "amount", max_digits=20, decimal_places=2, null=True, blank=True
     )
     description = models.TextField("description", null=True, blank=True)
     is_generated = models.BooleanField("is_generated", default=False)
