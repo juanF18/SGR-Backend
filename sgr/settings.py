@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "core.contracts",
     "core.movements",
     "core.cdps",
+    "core.counterpartExecution",
 ]
 
 MIDDLEWARE = [

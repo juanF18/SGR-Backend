@@ -3,7 +3,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Counterpart
 from .serializers import CounterpartSerializer
-from core.rubros.models import Rubro
+from core.projects.models import Project
+from core.activities.models import Activity
+from core.counterpartExecution.models import CounterpartExecution
+from core.counterpartExecution.serializers import CounterpartExecutionSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -20,8 +23,8 @@ counterpart_request_body = openapi.Schema(
         "value_chash": openapi.Schema(
             type=openapi.TYPE_NUMBER, description="Valor en efectivo"
         ),
-        "rubro_id": openapi.Schema(
-            type=openapi.TYPE_STRING, description="ID del rubro relacionado"
+        "project_id": openapi.Schema(
+            type=openapi.TYPE_STRING, description="ID del proyecto relacionado"
         ),
     },
 )
@@ -88,19 +91,31 @@ class CounterpartView(APIView):
 
         try:
             data = request.data
-            rubro = Rubro.objects.get(id=data["rubro_id"])
+            project = Project.objects.get(id=data["project_id"])
+            activity = Activity.objects.get(id=project.activity_id)
             counterpart = Counterpart.objects.create(
                 name=data["name"],
                 value_species=data["value_species"],
                 value_chash=data["value_chash"],
-                rubro_id=rubro,
+                project_id=project.id,
             )
             counterpart_serializer = CounterpartSerializer(counterpart, many=False)
 
+            counterpart_execution = CounterpartExecution.objects.create(
+                amount=counterpart.value_chash + counterpart.value_species,
+                description=counterpart.name,
+                type="I",
+                counterpart_id=counterpart.id,
+                activity_id=activity.id,
+            )
+            counterpart_execution_serializer = CounterpartExecutionSerializer(
+                counterpart_execution, many=False
+            )
+
             return Response(counterpart_serializer.data, status=status.HTTP_201_CREATED)
-        except Rubro.DoesNotExist:
+        except Project.DoesNotExist:
             response = {
-                "message": "Rubro no encontrado",
+                "message": "Proyecto no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -183,9 +198,9 @@ class CounterpartDetailView(APIView):
 
             data = request.data
 
-            if data.get("rubro_id"):
-                rubro = Rubro.objects.get(id=data["rubro_id"])
-                counterpart.rubro = rubro
+            if data.get("project_id"):
+                project = Project.objects.get(id=data["project_id"])
+                counterpart.project = project
 
             counterpart.name = data.get("name", counterpart.name)
             counterpart.value_species = data.get(
@@ -198,9 +213,9 @@ class CounterpartDetailView(APIView):
             counterpart_serializer = CounterpartSerializer(counterpart, many=False)
 
             return Response(counterpart_serializer.data, status=status.HTTP_200_OK)
-        except Rubro.DoesNotExist:
+        except Project.DoesNotExist:
             response = {
-                "message": "Rubro no encontrado",
+                "message": "Proyecto no encontrado",
                 "status": status.HTTP_400_BAD_REQUEST,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
