@@ -2,8 +2,8 @@ from io import BytesIO
 from xhtml2pdf import pisa
 from django.utils import timezone
 
-class GeneratePdf:
 
+class GeneratePdf:
     """
     Class to generate a PDF file with the data of a CDP (Certificado de Disponibilidad Presupuestal)
     """
@@ -17,8 +17,8 @@ class GeneratePdf:
         html = self.metaData()
 
         buffer = BytesIO()
-        pisa_status = pisa.CreatePDF(html.encode('utf-8'), dest=buffer)
-        
+        pisa_status = pisa.CreatePDF(html.encode("utf-8"), dest=buffer)
+
         buffer.seek(0)
         pdf = buffer.getvalue()
         buffer.close()
@@ -91,7 +91,6 @@ class GeneratePdf:
         """
         return html
 
-
     def footerPdf(self):
         html = f"""
         <footer>
@@ -143,15 +142,6 @@ class GeneratePdf:
             </div>
 
             <hr style="border: 1px solid #ccc;">
-
-            <div style="margin-top: 20px;">
-                <strong>Enlace al documento:</strong> <br>
-                <a href="{self.dataCdp.document_url if self.dataCdp.document_url else '#'}" target="_blank">
-                    {self.dataCdp.document_url if self.dataCdp.document_url else 'No disponible'}
-                </a>
-            </div>
         </section>
         """
         return html
-
-      
