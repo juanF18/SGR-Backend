@@ -1,9 +1,10 @@
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from core.rubros.models import Rubro
 from core.activities.models import Activity
 from core.tasks.models import Task
+from core.counterparts.models import Counterpart
 from rest_framework.exceptions import APIException
 
 
@@ -47,7 +48,6 @@ class BudgetProcessor:
                     total = 0.0  # Si el valor no se puede convertir a float, asignar 0
 
                 try:
-                    print("rubro", rubro, "total", total)
                     Rubro.objects.create(
                         descripcion=rubro,
                         value_sgr=total,
@@ -65,6 +65,110 @@ class BudgetProcessor:
             raise APIException(
                 f"Error inesperado al procesar el archivo de presupuesto: {str(e)}"
             )
+
+
+class CounterPartsProcessor:
+    def __init__(self, file, project):
+        self.file = file
+        self.project = project
+
+    def process(self):
+        try:
+            # Leer el archivo Excel
+            resumen_data = pd.read_excel(self.file, sheet_name="RESUMEN", header=None)
+
+            # Eliminar las primeras 6 filas
+            resumen_data_cleaned = resumen_data.drop(
+                index=[0, 1, 2, 3, 4, 5, 6]
+            ).reset_index(drop=True)
+
+            # Fusionar las primeras dos filas restantes para crear un encabezado coherente
+            new_header = (
+                resumen_data_cleaned.iloc[0].fillna("")
+                + "_"
+                + resumen_data_cleaned.iloc[1].fillna("")
+            )
+            new_header = new_header.str.replace("_$", "", regex=True)
+            resumen_data_cleaned.columns = new_header
+
+            # Limpiar el DataFrame
+            resumen_data_cleaned = resumen_data_cleaned[2:].reset_index(drop=True)
+            resumen_data_cleaned = resumen_data_cleaned.iloc[
+                :, 3:-1
+            ]  # Eliminar primeras 3 y última columna
+            resumen_data_cleaned.columns = resumen_data_cleaned.columns.str.lstrip(
+                "_"
+            ).str.replace("CONTRAPARTIDA_", "", regex=False)
+
+            # Validar el proyecto
+            if not self.project:
+                raise ValueError("El proyecto no es válido o no está asignado.")
+            print(f"Procesando contrapartidas para el proyecto: {self.project.name}")
+
+            # Procesar contrapartidas
+            for i in range(0, len(resumen_data_cleaned.columns) - 1, 2):
+                entidad = resumen_data_cleaned.columns[i]
+
+                if pd.isna(entidad) or entidad.strip() == "":
+                    print(f"Entidad vacía o inválida en la columna {i}, saltando.")
+                    continue
+
+                # Recuperar los valores de especie y efectivo
+                especie = resumen_data_cleaned.iloc[1, i]
+                efectivo = resumen_data_cleaned.iloc[1, i + 1]
+
+                # Validar y limpiar los valores
+                especie = self.limpiar_valor(especie)
+                efectivo = self.limpiar_valor(efectivo)
+
+                # Validar si los valores son válidos antes de guardar
+                if especie is None or efectivo is None:
+                    print(f"Valores inválidos para la entidad {entidad}, saltando.")
+                    continue
+
+                # Verificar si la entidad es válida
+                if pd.isna(entidad) or entidad.strip() == "":
+                    print("Entidad vacía para la contrapartida, saltando creación.")
+                    continue
+
+                try:
+                    # Crear la contrapartida en la base de datos
+                    print(f"Creando contrapartida para la entidad: {entidad}")
+                    Counterpart.objects.create(
+                        project=self.project,
+                        name=entidad,
+                        value_species=especie,
+                        value_chash=efectivo,
+                    )
+                except Exception as db_error:
+                    raise DatabaseError(
+                        f"Error al guardar la contrapartida para la entidad {entidad}: {str(db_error)}"
+                    )
+
+        except InvalidFileFormatError as e:
+            raise e  # Propagar el error de formato de archivo
+        except DatabaseError as e:
+            raise e  # Propagar el error relacionado con la base de datos
+        except Exception as e:
+            # Cualquier otro error inesperado
+            raise APIException(
+                f"Error inesperado al procesar el archivo de presupuesto para contrapartidas: {str(e)}"
+            )
+
+    def limpiar_valor(self, valor):
+        """
+        Limpia el valor (eliminando símbolos de dólar, comas, espacios) y lo convierte a float.
+        Si el valor es inválido, devuelve None.
+        """
+        try:
+            # Convertir a string y limpiar caracteres no numéricos
+            cleaned_value = str(valor).replace("$", "").replace(",", "").strip()
+            if cleaned_value == "" or pd.isna(valor):
+                return None
+            return float(cleaned_value)
+        except ValueError:
+            print(f"Valor inválido al intentar convertir: {valor}")
+            return None
 
 
 class ActivitiesProcessor:
@@ -118,8 +222,6 @@ class ActivitiesProcessor:
             actividades_limpias = self.limpiar_json_con_condicion_de_salida(
                 df_filtrado, df_filtrado_cronograma
             )
-
-            print(actividades_limpias)
 
             # Crear las actividades y tareas en la base de datos
             for actividad_data in actividades_limpias:

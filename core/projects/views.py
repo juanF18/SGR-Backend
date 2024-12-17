@@ -10,6 +10,7 @@ from .utils import (
     ActivitiesProcessor,
     InvalidFileFormatError,
     DatabaseError,
+    CounterPartsProcessor,
 )
 from core.entities.models import Entity
 from drf_yasg.utils import swagger_auto_schema
@@ -179,6 +180,10 @@ class ProjectView(APIView):
                 if file_budget:
                     processor = BudgetProcessor(file_budget, project)
                     processor.process()
+
+                if file_budget:
+                    processor_counterpart = CounterPartsProcessor(file_budget, project)
+                    processor_counterpart.process()
 
                 if file_activities:
                     activities_processor = ActivitiesProcessor(file_activities, project)
