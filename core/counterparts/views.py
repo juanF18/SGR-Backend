@@ -92,7 +92,7 @@ class CounterpartView(APIView):
         try:
             data = request.data
             project = Project.objects.get(id=data["project_id"])
-            activity = Activity.objects.get(id=project.activity_id)
+
             counterpart = Counterpart.objects.create(
                 name=data["name"],
                 value_species=data["value_species"],
@@ -100,17 +100,6 @@ class CounterpartView(APIView):
                 project_id=project.id,
             )
             counterpart_serializer = CounterpartSerializer(counterpart, many=False)
-
-            counterpart_execution = CounterpartExecution.objects.create(
-                amount=counterpart.value_chash + counterpart.value_species,
-                description=counterpart.name,
-                type="I",
-                counterpart_id=counterpart.id,
-                activity_id=activity.id,
-            )
-            counterpart_execution_serializer = CounterpartExecutionSerializer(
-                counterpart_execution, many=False
-            )
 
             return Response(counterpart_serializer.data, status=status.HTTP_201_CREATED)
         except Project.DoesNotExist:

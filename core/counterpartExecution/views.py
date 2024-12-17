@@ -7,29 +7,40 @@ from .serializers import CounterpartExecutionSerializer
 from .models import CounterpartExecution
 from core.counterparts.models import Counterpart
 from core.activities.models import Activity
-from django.db.models import Sum
+from core.movementsCounterpart.models import MovementsCounterpart
 
 # Create your views here.
-movement_request_body = openapi.Schema(
+counter_execution_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
+        "number": openapi.Schema(
+            type=openapi.TYPE_STRING, description="Número de la ejecución contrapartida"
+        ),
+        "expedition_date": openapi.Schema(
+            type=openapi.TYPE_STRING,
+            format=openapi.FORMAT_DATE,
+            description="Fecha de expedición",
+        ),
         "amount": openapi.Schema(
-            type=openapi.TYPE_NUMBER,
-            format=openapi.FORMAT_FLOAT,
-            description="Monto de la ejecución de contrapartida",
+            type=openapi.TYPE_NUMBER, description="Monto de la ejecución contrapartida"
         ),
         "description": openapi.Schema(
-            type=openapi.TYPE_STRING, description="Descripción de la ejecución"
-        ),
-        "type": openapi.Schema(
             type=openapi.TYPE_STRING,
-            description="Tipo de contrapartida (ingreso, egreso, etc.)",
+            description="Descripciónde la ejecución contrapartida",
         ),
-        "counterpart": openapi.Schema(
+        "is_generated": openapi.Schema(
+            type=openapi.TYPE_BOOLEAN,
+            description="Indica si la ejecución contrapartida fue generada",
+        ),
+        "is_canceled": openapi.Schema(
+            type=openapi.TYPE_BOOLEAN,
+            description="Indica si la ejecución contrapartida fue cancelada",
+        ),
+        "counterpart_id": openapi.Schema(
             type=openapi.TYPE_STRING,
             description="ID de la contrapartida asociado a la ejecución",
         ),
-        "activity": openapi.Schema(
+        "activity_id": openapi.Schema(
             type=openapi.TYPE_STRING,
             description="ID de la actividad asociada a la ejecución",
         ),
@@ -77,7 +88,7 @@ class CounterpartExecutionView(APIView):
 
     @swagger_auto_schema(
         operation_description="Crear una nueva ejecución de contrapartida",
-        request_body=movement_request_body,
+        request_body=counter_execution_request_body,
         responses={
             201: openapi.Response(description="Ejecución de contrapartida creada"),
             400: openapi.Response(description="Contrapartida no encontrada"),
@@ -96,15 +107,29 @@ class CounterpartExecutionView(APIView):
             activity = Activity.objects.get(id=data["activity_id"])
 
             counterpart_execution = CounterpartExecution.objects.create(
+                number=data["number"],
+                expedition_date=data["expedition_date"],
                 amount=data["amount"],
                 description=data["description"],
-                type=data["type"],
-                counterpart=counterpart,
-                activity=activity,
+                is_generated=data["is_generated"],
+                is_canceled=data["is_canceled"],
+                counterpart_id=counterpart,
+                activity_id=activity,
             )
 
             counterpart_execution = CounterpartExecutionSerializer(
                 counterpart_execution, many=False
+            )
+
+            movement_counterpart = MovementsCounterpart.objects.create(
+                amount=data["amount"],
+                description=data["description"],
+                type="I",
+                counterpart_execution_id=counterpart_execution.id,
+            )
+
+            movement_counterpart = CounterpartExecutionSerializer(
+                movement_counterpart, many=False
             )
 
             return Response(counterpart_execution.data, status=status.HTTP_201_CREATED)
@@ -199,19 +224,30 @@ class CounterpartExecutionDetailView(APIView):
 
             if data.get("counterpart_id"):
                 counterpart = Counterpart.objects.get(id=data["counterpart_id"])
-                counterpart_execution.counterpart = counterpart
+                counterpart_execution.counterpart_id = counterpart
 
             if data.get("activity_id"):
                 activity = Activity.objects.get(id=data["activity_id"])
-                counterpart_execution.activity = activity
+                counterpart_execution.activity_id = activity
 
+            counterpart_execution.number = data.get(
+                "number", counterpart_execution.number
+            )
+            counterpart_execution.expedition_date = data.get(
+                "expedition_date", counterpart_execution.expedition_date
+            )
             counterpart_execution.amount = data.get(
                 "amount", counterpart_execution.amount
             )
             counterpart_execution.description = data.get(
                 "description", counterpart_execution.description
             )
-            counterpart_execution.type = data.get("type", counterpart_execution.type)
+            counterpart_execution.is_generated = data.get(
+                "is_generated", counterpart_execution.is_generated
+            )
+            counterpart_execution.is_canceled = data.get(
+                "is_canceled", counterpart_execution.is_canceled
+            )
 
             counterpart_execution.save()
             serializer = CounterpartExecutionSerializer(counterpart_execution)
@@ -322,69 +358,6 @@ class CounterpartExecutionsByProjectId(APIView):
                 counterpart_executions, many=True
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            response = {
-                "message": f"Error al obtener las ejecuciones de contrapartida por proyecto: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class CounterpartExecutionsByProjectId(APIView):
-    """
-    Clase para manejar solicitudes HTTP relacionadas con la suma de contrapartidas por ID de proyecto
-
-    @Methods
-    - get: Get all counterpart executions by project ID
-    """
-
-    @swagger_auto_schema(
-        operation_description="Obtener todas las ejecuciones de contrapartida por ID de proyecto",
-        responses={
-            200: openapi.Schema(
-                description="Suma de ejecuciones de contrapartida por proyecto",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "total": openapi.Schema(
-                            type=openapi.TYPE_NUMBER, format=openapi.FORMAT_FLOAT
-                        )
-                    },
-                ),
-            ),
-            400: openapi.Response(description="Proyecto no encontrado"),
-            500: openapi.Response(description="Error interno del servidor"),
-        },
-    )
-    def get(self, request, project_id):
-        """
-        Get all counterpart executions by project ID
-        @param request: HTTP request
-        @param project_id: Project ID
-        @return: JSON response
-        """
-        try:
-            activities = Activity.objects.filter(project_id=project_id)
-
-            if not activities.exists():
-                response = {
-                    "message": "Proyecto no encontrado",
-                    "status": status.HTTP_400_BAD_REQUEST,
-                }
-                return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-            counterpart_executions = CounterpartExecution.objects.filter(
-                activity__in=activities
-            )
-
-            counterpart_executions_total = (
-                counterpart_executions.aggregate(total=Sum("amount")) or 0
-            )
-
-            return Response(
-                {"total": counterpart_executions_total["total"]},
-                status=status.HTTP_200_OK,
-            )
         except Exception as e:
             response = {
                 "message": f"Error al obtener las ejecuciones de contrapartida por proyecto: {str(e)}",
