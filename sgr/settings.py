@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "core.movements",
     "core.cdps",
     "core.counterpartExecution",
+    "core.movementsCounterpart",
 ]
 
 MIDDLEWARE = [
