@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from .models import CounterpartExecution
 from core.counterparts.serializers import CounterpartSerializer
-from core.cdps.serializers import CdpsSerializer
+from core.activities.serializers import ActivitySerializer
 
 
 class CounterpartExecutionSerializer(serializers.ModelSerializer):
     counterpart = CounterpartSerializer(many=False)
-    cdp = CdpsSerializer(many=False)
+    activity = ActivitySerializer(many=True)
 
     class Meta:
         model = CounterpartExecution
@@ -19,8 +19,7 @@ class CounterpartExecutionSerializer(serializers.ModelSerializer):
             representation["counterpart_id"] = data.counterpart.get("id")
         else:
             representation["counterpart_id"] = None
-        if data.get("cdp"):
-            representation["cdp_id"] = data.cdp.get("id")
+        if data.get("activity"):
+            representation["activity_id"] = data.activity.get("id")
         else:
-            representation["cdp_id"] = None
-        return representation
+            representation["activity_id"] = None

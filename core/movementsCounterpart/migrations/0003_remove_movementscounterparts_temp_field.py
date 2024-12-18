@@ -6,7 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('movementsCounterpart', '0002_initial'),
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='movementscounterparts',
+            name='temp_field',
+        ),
     ]

@@ -1,18 +1,23 @@
 from rest_framework import serializers
-from .models import MovementCounterpart
+from .models import MovementsCounterparts
+from core.counterpartExecution.serializers import CounterpartExecutionSerializer
 
 
 class MovementCounterpartSerializer(serializers.ModelSerializer):
+    couterpart_execution = CounterpartExecutionSerializer(read_only=True)
+
     class Meta:
-        model = MovementCounterpart
+        model = MovementsCounterparts
         exclude = ["created_at", "updated_at", "deleted_at"]
 
     def to_internal_value(self, data):
         representation = super().to_internal_value(data)
-        if data.get("counterpart_execution"):
-            representation["counterpart_execution_id"] = data.get(
-                "counterpart_execution"
-            ).get("id")
+
+        # Manejo de la relación con CounterpartExecution
+        counterpart_execution_data = data.get("counterpart_execution")
+        if counterpart_execution_data:
+            representation["counterpart_execution_id"] = counterpart_execution_data
         else:
             representation["counterpart_execution_id"] = None
+
         return representation

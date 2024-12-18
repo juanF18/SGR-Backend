@@ -1,34 +1,31 @@
-from django.shortcuts import render
-from drf_yasg import openapi
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.db.models import Sum
 from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
-from .models import MovementsCounterpart
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import MovementsCounterparts
 from .serializers import MovementCounterpartSerializer
 from core.counterpartExecution.models import CounterpartExecution
-from core.activities.models import Activity
-from django.db.models import Sum
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
-# Create your views here.
-movement_counterpart_request_body = openapi.Schema(
+
+# Definir el cuerpo de la solicitud para el POST y PUT
+movement_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
         "amount": openapi.Schema(
-            type=openapi.TYPE_NUMBER,
-            format=openapi.FORMAT_FLOAT,
-            description="Monto del movimiento",
+            type=openapi.TYPE_NUMBER, description="Monto del movimiento"
         ),
         "description": openapi.Schema(
             type=openapi.TYPE_STRING, description="Descripción del movimiento"
         ),
         "type": openapi.Schema(
             type=openapi.TYPE_STRING,
-            description="Tipo de movimiento (ingreso, egreso, etc.)",
+            description="Tipo de movimiento (I: Ingresos, G: Gastos)",
         ),
         "counterpart_execution_id": openapi.Schema(
             type=openapi.TYPE_STRING,
-            description="ID de la ejecución de la contrapartida asociada al movimiento",
+            description="ID de la ejecución de contraparte asociada",
         ),
     },
 )
@@ -36,15 +33,11 @@ movement_counterpart_request_body = openapi.Schema(
 
 class MovementCounterpartView(APIView):
     """
-    Class to handle HTTP requests related to movementsCounterpart
-
-    @methods:
-    - get: Get all movementsCounterpart
-    - post: Create a new movementCounterpart
+    Class to handle HTTP requests related to MovementCounterpart
     """
 
     @swagger_auto_schema(
-        operation_description="Obtener todos los movimientos",
+        operation_description="Obtener todos los movimientos de contrapartidas",
         responses={
             200: openapi.Response(
                 description="Movimientos recuperados correctamente",
@@ -55,90 +48,69 @@ class MovementCounterpartView(APIView):
     )
     def get(self, request):
         """
-        Get all movements
-        @param request: HTTP request
-        @return: JSON response
+        Get all MovementCounterpart
         """
-
         try:
-            data = MovementsCounterpart.objects.all()
-            movement_counterpart_serializer = MovementCounterpartSerializer(
-                data, many=True
-            )
-
-            return Response(
-                movement_counterpart_serializer.data, status=status.HTTP_200_OK
-            )
+            movements = MovementsCounterparts.objects.all()
+            serializer = MovementCounterpartSerializer(movements, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
-            response = {
-                "message": f"Error obteniendo los movimientos de las ejecuciones: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"Error al obtener los movimientos: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @swagger_auto_schema(
-        operation_description="Crear un nuevo movimiento de contrapartida",
-        request_body=movement_counterpart_request_body,
+        operation_description="Crear un nuevo movimiento de contraparte",
+        request_body=movement_request_body,
         responses={
             201: openapi.Response(
                 description="Movimiento creado correctamente",
                 schema=MovementCounterpartSerializer,
             ),
-            400: openapi.Response(description="Contrapartida no encontrada"),
+            400: openapi.Response(description="Error en los datos de entrada"),
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
     def post(self, request):
         """
-        Create a new movement of counterpart execution
-        @param request: HTTP request
-        @return: JSON response
+        Create a new MovementCounterpart
         """
-
         try:
             data = request.data
             counterpart_execution = CounterpartExecution.objects.get(
                 id=data["counterpart_execution_id"]
             )
-            movement_counterpart = MovementsCounterpart.objects.create(
+
+            movement = MovementsCounterparts.objects.create(
                 amount=data["amount"],
                 description=data["description"],
                 type=data["type"],
-                counterpart_execution_id=counterpart_execution,
-            )
-            movement_counterpart_serializer = MovementCounterpartSerializer(
-                movement_counterpart, many=False
+                counterpart_execution=counterpart_execution,
             )
 
-            return Response(
-                movement_counterpart_serializer.data, status=status.HTTP_201_CREATED
-            )
+            serializer = MovementCounterpartSerializer(movement)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         except CounterpartExecution.DoesNotExist:
-            response = {
-                "message": "Ejecución de contrapartida no encontrada",
-                "status": status.HTTP_400_BAD_REQUEST,
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Ejecución de contraparte no encontrada"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            response = {
-                "message": f"Error creando el movimiento: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"Error al crear el movimiento: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
-class MovementsCounterpartDetailView(APIView):
+class MovementCounterpartDetailView(APIView):
     """
-    Class to handle HTTP requests related to a specific movement of counterpart execution
-
-    @methods:
-    - get: Get a specific movement by ID
-    - put: Update a specific movement by ID
-    - delete: Delete a specific movement
+    Class to handle specific MovementCounterpart requests
     """
 
     @swagger_auto_schema(
-        operation_description="Obtener un movimiento de la contrapartida específico por ID",
+        operation_description="Obtener los detalles de un movimiento específico",
         responses={
             200: openapi.Response(
                 description="Movimiento recuperado correctamente",
@@ -148,30 +120,28 @@ class MovementsCounterpartDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request, id):
+    def get(self, request, movement_id):
+        """
+        Get specific MovementCounterpart by ID
+        """
         try:
-            movement_counterpart = MovementsCounterpart.objects.get(id=id)
-            movement_serializer = MovementCounterpartSerializer(
-                movement_counterpart, many=False
+            movement = MovementsCounterparts.objects.get(id=movement_id)
+            serializer = MovementCounterpartSerializer(movement)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except MovementsCounterparts.DoesNotExist:
+            return Response(
+                {"message": "Movimiento no encontrado"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            return Response(
+                {"message": f"Error al obtener el movimiento: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-            return Response(movement_serializer.data, status=status.HTTP_200_OK)
-        except MovementsCounterpart.DoesNotExist:
-            response = {
-                "message": "Movimiento no encontrado",
-                "status": status.HTTP_400_BAD_REQUEST,
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            response = {
-                "message": f"Error obteniendo el movimiento: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
     @swagger_auto_schema(
-        operation_description="Actualizar un movimiento de la contrapartida específico por ID",
-        request_body=movement_counterpart_request_body,
+        operation_description="Actualizar un movimiento específico por ID",
+        request_body=movement_request_body,
         responses={
             200: openapi.Response(
                 description="Movimiento actualizado correctamente",
@@ -181,17 +151,18 @@ class MovementsCounterpartDetailView(APIView):
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def put(self, request, pk):
+    def put(self, request, movement_id):
+        """
+        Update specific MovementCounterpart by ID
+        """
         try:
-            movement = MovementsCounterpart.objects.get(id=pk)
-
+            movement = MovementsCounterparts.objects.get(id=movement_id)
             data = request.data
 
-            if data.get("counterpart_execution_id"):
-                counterpart_execution = CounterpartExecution.objects.get(
+            if "counterpart_execution_id" in data:
+                movement.counterpart_execution = CounterpartExecution.objects.get(
                     id=data["counterpart_execution_id"]
                 )
-                movement.counterpart_execution_id = counterpart_execution
 
             movement.amount = data.get("amount", movement.amount)
             movement.description = data.get("description", movement.description)
@@ -199,169 +170,117 @@ class MovementsCounterpartDetailView(APIView):
 
             movement.save()
 
-            movement_serializer = MovementCounterpartSerializer(movement, many=False)
+            serializer = MovementCounterpartSerializer(movement)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-            return Response(movement_serializer.data, status=status.HTTP_200_OK)
-        except MovementsCounterpart.DoesNotExist:
-            response = {
-                "message": "Movimiento no encontrado",
-                "status": status.HTTP_400_BAD_REQUEST,
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except MovementsCounterparts.DoesNotExist:
+            return Response(
+                {"message": "Movimiento no encontrado"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except CounterpartExecution.DoesNotExist:
-            response = {
-                "message": "Ejecución de contrapartida no encontrada",
-                "status": status.HTTP_400_BAD_REQUEST,
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Ejecución de contraparte no encontrada"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            response = {
-                "message": f"Error actualizando el movimiento: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"Error al actualizar el movimiento: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @swagger_auto_schema(
-        operation_description="Eliminar un movimiento específico específico por ID",
+        operation_description="Eliminar un movimiento específico por ID",
         responses={
             200: openapi.Response(description="Movimiento eliminado correctamente"),
             400: openapi.Response(description="Movimiento no encontrado"),
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def delete(self, request, pk):
+    def delete(self, request, movement_id):
+        """
+        Delete specific MovementCounterpart by ID
+        """
         try:
-            movement = MovementsCounterpart.objects.get(id=pk)
+            movement = MovementsCounterparts.objects.get(id=movement_id)
             movement.delete()
-
-            return Response(status=status.HTTP_200_OK)
-        except MovementsCounterpart.DoesNotExist:
-            response = {
-                "message": "Movimiento no encontrado",
-                "status": status.HTTP_400_BAD_REQUEST,
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Movimiento eliminado correctamente"},
+                status=status.HTTP_200_OK,
+            )
+        except MovementsCounterparts.DoesNotExist:
+            return Response(
+                {"message": "Movimiento no encontrado"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
-            response = {
-                "message": f"Error eliminando el movimiento: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class MovementsCounterpartByProjectId(APIView):
-    """
-    Class to handle HTTP requests related to movements
-
-    @methods:
-    - get: Get all movements
-    - post: Create a new movement
-    - get_movements_by_project: Get movements filtered by project ID
-    """
-
-    # Endpoint para obtener movimientos por proyecto
-    @swagger_auto_schema(
-        operation_description="Obtener movimientos filtrados por ID de proyecto",
-        responses={
-            200: openapi.Response(
-                description="Movimientos recuperados correctamente",
-                schema=MovementCounterpartSerializer(many=True),
-            ),
-            400: openapi.Response(description="Proyecto no encontrado"),
-            500: openapi.Response(description="Error interno del servidor"),
-        },
-    )
-    def get(self, request, project_id):
-        """
-        Obtener movimientos filtrados por el ID del proyecto.
-        @param request: HTTP request
-        @param project_id: ID del proyecto
-        @return: JSON response con los movimientos del proyecto
-        """
-        try:
-
-            activities = Activity.objects.filter(project_id=project_id)
-
-            counterpart_execution = CounterpartExecution.objects.filter(
-                activity__in=activities
-            ).values_list("id", flat=True)
-
-            movements = MovementsCounterpart.objects.filter(
-                counterpart_execution_id__in=counterpart_execution
+            return Response(
+                {"message": f"Error al eliminar el movimiento: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-            movement_serializer = MovementCounterpartSerializer(movements, many=True)
 
-            return Response(movement_serializer.data, status=status.HTTP_200_OK)
-
-        except Activity.DoesNotExist:
-            response = {
-                "message": "Proyecto no encontrado",
-                "status": status.HTTP_400_BAD_REQUEST,
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            response = {
-                "message": f"Error obteniendo los movimientos: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class MovementsCounterpartSumByProjectId(APIView):
+class MovementCounterpartSumView(APIView):
     """
-    Clase para manejar solicitudes HTTP relacionadas con la suma de movimientos por ID de proyecto
+    Endpoint para obtener la suma total de los movimientos por tipo
     """
 
     @swagger_auto_schema(
-        operation_description="Obtener la suma total de los movimientos filtrados por ID de proyecto",
+        operation_description="Obtener la suma total de los movimientos por tipo",
         responses={
             200: openapi.Response(
-                description="Suma de movimientos obtenida correctamente",
+                description="Sumas calculadas correctamente",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "total_amount": openapi.Schema(
-                            type=openapi.TYPE_NUMBER, format=openapi.FORMAT_FLOAT
-                        )
+                        "total_ingresos": openapi.Schema(
+                            type=openapi.TYPE_NUMBER,
+                            description="Suma total de los ingresos",
+                        ),
+                        "total_gastos": openapi.Schema(
+                            type=openapi.TYPE_NUMBER,
+                            description="Suma total de los gastos",
+                        ),
+                        "total_general": openapi.Schema(
+                            type=openapi.TYPE_NUMBER,
+                            description="Suma total general (ingresos - gastos)",
+                        ),
                     },
                 ),
             ),
-            400: openapi.Response(description="Proyecto no encontrado"),
             500: openapi.Response(description="Error interno del servidor"),
         },
     )
-    def get(self, request, project_id):
+    def get(self, request):
         """
-        Obtener la suma total de los movimientos para un proyecto dado, filtrando por el ID del proyecto.
-        @param request: HTTP request
-        @param project_id: ID del proyecto
-        @return: JSON response con la suma total de los movimientos
+        Calcula la suma total de los movimientos agrupados por tipo
         """
         try:
-
-            activities = Activity.objects.filter(project_id=project_id)
-
-            if not activities.exists():
-                return Response(
-                    {"message": "Proyecto no encontrado"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            counterpart_execution = CounterpartExecution.objects.filter(
-                activity__in=activities
-            ).values_list("id", flat=True)
-
-            movements = MovementsCounterpart.objects.filter(
-                counterpart_execution_id__in=counterpart_execution
+            total_ingresos = (
+                MovementsCounterparts.objects.filter(type="I").aggregate(
+                    total=Sum("amount")
+                )["total"]
+                or 0
+            )
+            total_gastos = (
+                MovementsCounterparts.objects.filter(type="G").aggregate(
+                    total=Sum("amount")
+                )["total"]
+                or 0
             )
 
-            total_amount = movements.aggregate(Sum("amount"))["amount__sum"] or 0
+            total_general = total_ingresos - total_gastos
 
-            return Response({"total_amount": total_amount}, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "total_ingresos": total_ingresos,
+                    "total_gastos": total_gastos,
+                    "total_general": total_general,
+                },
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
-            response = {
-                "message": f"Error obteniendo la suma de los movimientos: {str(e)}",
-                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-            }
-            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"Error al calcular las sumas: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

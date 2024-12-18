@@ -1,12 +1,11 @@
 from django.db import models
-import uuid
 from core.counterpartExecution.models import CounterpartExecution
 
-choices = (("I", "Income"), ("E", "Expense"))
+choices = (("I", "Ingresos"), ("G", "Gastos"))
 
 
 # Create your models here.
-class MovementsCounterpart(models.Model):
+class MovementsCounterparts(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True)
     amount = models.DecimalField(max_digits=20, decimal_places=2)
     description = models.CharField(max_length=250, null=True, blank=True)
