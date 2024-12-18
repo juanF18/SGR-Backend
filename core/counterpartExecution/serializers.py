@@ -6,7 +6,7 @@ from core.activities.serializers import ActivitySerializer
 
 class CounterpartExecutionSerializer(serializers.ModelSerializer):
     counterpart = CounterpartSerializer(many=False)
-    activity = ActivitySerializer(many=True)
+    activity = ActivitySerializer(many=False)
 
     class Meta:
         model = CounterpartExecution

@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import CounterpartExecution
 from .serializers import CounterpartExecutionSerializer
+from core.movementsCounterpart.models import MovementsCounterparts
 from core.counterparts.models import Counterpart
 from core.activities.models import Activity
 from drf_yasg.utils import swagger_auto_schema
@@ -87,6 +88,7 @@ class CounterpartExecutionView(APIView):
             counterpart = Counterpart.objects.get(id=data["counterpart_id"])
             activity = Activity.objects.get(id=data["activity_id"])
 
+            # Crear la ejecución de contraparte
             execution = CounterpartExecution.objects.create(
                 number=data["number"],
                 amount=data["amount"],
@@ -96,6 +98,13 @@ class CounterpartExecutionView(APIView):
                 is_canceled=data["is_canceled"],
                 counterpart=counterpart,
                 activity=activity,
+            )
+
+            MovementsCounterparts.objects.create(
+                amount=data["amount"],
+                description=f"Movimiento asociado a ejecución {execution.number}",
+                type="I",
+                counterpart_execution_id=execution.id,
             )
 
             serializer = CounterpartExecutionSerializer(execution)
