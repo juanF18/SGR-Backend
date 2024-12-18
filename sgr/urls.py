@@ -57,6 +57,8 @@ urlpatterns = [
     path("api/", include("core.contracts.urls")),
     path("api/", include("core.cdps.urls")),
     path("api/", include("core.movements.urls")),
+    path("api/", include("core.counterpartExecution.urls")),
+    path("api/", include("core.movementsCounterpart.urls")),
     # Ruta de la documentación Swagger
     path(
         "swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="swagger-ui"
