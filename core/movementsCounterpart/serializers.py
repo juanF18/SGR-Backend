@@ -4,7 +4,7 @@ from core.counterpartExecution.serializers import CounterpartExecutionSerializer
 
 
 class MovementCounterpartSerializer(serializers.ModelSerializer):
-    couterpart_execution = CounterpartExecutionSerializer(read_only=True)
+    counterpart_execution = CounterpartExecutionSerializer(many=False)  # Corregido
 
     class Meta:
         model = MovementsCounterparts
