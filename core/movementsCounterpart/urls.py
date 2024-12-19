@@ -7,17 +7,17 @@ from .views import (
 
 urlpatterns = [
     path(
-        "movement-counterparts/",
+        "movement-counterparts",
         MovementCounterpartView.as_view(),
         name="movement-counterparts",
     ),
     path(
-        "movement-counterparts/<uuid:movement_id>/",
+        "movement-counterparts/<uuid:movement_id>",
         MovementCounterpartDetailView.as_view(),
         name="movement-counterpart-detail",
     ),
     path(
-        "movement-couterparts/sum",
+        "movement-counterparts/sum",
         MovementCounterpartSumView.as_view(),
         name="movement-couterpart-sum",
     ),

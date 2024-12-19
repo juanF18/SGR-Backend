@@ -8,4 +8,9 @@ urlpatterns = [
         views.CounterpartDetailView.as_view(),
         name="counterpart_detail_view",
     ),
+    path(
+        "counterparts/sum",
+        views.CounterpartSumView.as_view(),
+        name="counterpart_sum_view",
+    ),
 ]

@@ -1,12 +1,10 @@
 from rest_framework import status
+from django.db.models import Sum
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Counterpart
 from .serializers import CounterpartSerializer
 from core.projects.models import Project
-from core.activities.models import Activity
-from core.counterpartExecution.models import CounterpartExecution
-from core.counterpartExecution.serializers import CounterpartExecutionSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -254,6 +252,63 @@ class CounterpartDetailView(APIView):
         except Exception as e:
             response = {
                 "message": f"Error eliminando la contrapartida: {str(e)}",
+                "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            }
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CounterpartSumView(APIView):
+    """
+    Class to handle HTTP requests for summing counterpart values
+
+    @methods:
+    - get: Get the total sum of value_species and value_cash for all counterparts
+    """
+
+    @swagger_auto_schema(
+        operation_description="Obtener la suma total de value_species y value_cash",
+        responses={
+            200: openapi.Response(
+                description="Suma calculada correctamente",
+                examples={
+                    "application/json": {
+                        "total_value_species": 10000.00,
+                        "total_value_cash": 15000.00,
+                        "total_value_combined": 25000.00,
+                    }
+                },
+            ),
+            500: openapi.Response(description="Error interno del servidor"),
+        },
+    )
+    def get(self, request):
+        """
+        Get the total sum of value_species and value_cash for all counterparts
+        @param request: HTTP request
+        @return: JSON response with sums
+        """
+        try:
+            total_species = (
+                Counterpart.objects.aggregate(Sum("value_species"))[
+                    "value_species__sum"
+                ]
+                or 0
+            )
+            total_cash = (
+                Counterpart.objects.aggregate(Sum("value_chash"))["value_chash__sum"]
+                or 0
+            )
+            total_combined = total_species + total_cash
+
+            response_data = {
+                "total_value_species": total_species,
+                "total_value_cash": total_cash,
+                "total_value_combined": total_combined,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            response = {
+                "message": f"Error calculando las sumas: {str(e)}",
                 "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
             }
             return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
